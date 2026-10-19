@@ -1,0 +1,64 @@
+version: "3.7"
+
+networks:
+  inknet:
+
+services:
+  frontend:
+    container_name: frontend
+    working_dir: /inkheart
+    build:
+      context: ../
+      target: node_builder
+      dockerfile: ./docker/dockerfile
+      args:
+        VITE_ENV: dev
+        FIREBASE_CONFIG: ${FIREBASE_CONFIG}
+        BASE_PATH: ${BASE_PATH}
+    environment:
+      - BASE_PATH=${BASE_PATH}
+    develop:
+      watch:
+        - action: sync
+          path: ../frontend
+          target: /inkheart
+    command: npm run dev
+    networks:
+      - inknet
+
+  inkheart:
+    build:
+      context: ../
+      dockerfile: ./docker/dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          path: ../backend
+    container_name: inkheart
+    # Run as root in dev to work around Docker Desktop bind mount permission
+    # issues on Windows. Production runs as the unprivileged inkheart user.
+    user: "0:0"
+    networks:
+      - inknet
+    volumes:
+      - ${HOST_MEDIA_DIR}:/media
+      - ${HOST_COVERS_DIR}:/covers
+      - ${HOST_THUMBNAIL_DIR}:/thumbnails
+      - ${HOST_CONFIG_DIR}:/config
+    env_file:
+      - ${COMPOSE_ENV_FILE}
+    restart: always
+
+  nginx-container:
+    image: nginx
+    volumes:
+      - ${NGINX_CONFIG}:/etc/nginx/nginx.conf:ro
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+    env_file:
+      - ${COMPOSE_ENV_FILE}
+    ports:
+      - 80:80/tcp
+    networks:
+      - inknet
+    depends_on:
+      - inkheart

@@ -1,0 +1,36 @@
+[package]
+name = "inkheart"
+version = "0.0.0"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["telemetry"]
+telemetry = ["reqwest"]
+
+[dependencies]
+actix-files = "0.6.2"
+actix-web = "4"
+clokwerk = "0.4.0"
+config_file = { package = "config", version = "0.13.4" }
+epub = "2.1.5"
+firebase-admin-auth-rs = "0.1.0"
+futures-util = "0.3.30"
+image = "0.25"
+md5 = "0.7.0"
+pdfium-render = { version = "0.9.0" }
+reqwest = { version = "0.11", features = ["blocking", "json"], optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.111"
+tantivy = "0.26.0"
+
+[dev-dependencies]
+tempfile = "3.9.0"
+
+[build-dependencies]
+reqwest = { version = "0.11", features = ["blocking"] }
+tar = "0.4"
+flate2 = "1.0"
+tempfile = "3.9.0"
+pdfium-render = { version = "0.9.0" }

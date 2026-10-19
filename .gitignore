@@ -1,0 +1,43 @@
+# Rust / Cargo
+backend/target/
+**/target/
+**/*.rs.bk
+Cargo.lock.bak
+backend/lib/
+
+# Node / Frontend
+frontend/node_modules/
+**/node_modules/
+frontend/dist/
+**/dist/
+.npm
+npm-debug.log*
+
+# Application runtime & data directories
+/media/
+/covers/
+/thumbnails/
+/config/
+/build/
+
+# Local environment & secrets
+.env
+.env.*
+!.env.example
+/dev/data
+/dev/.env
+/dev/.env.firebase
+/dev/nginx/.htpasswd
+/dev/*.temp
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker archives
+*.tar
+*.tar.gz

@@ -1,0 +1,7 @@
+:root {
+  --small-viewport: 45rem;
+  --medium-viewport: 75rem;
+}
+
+@custom-media --small-viewport (max-width: 45rem);
+@custom-media --medium-viewport (max-width: 75rem);

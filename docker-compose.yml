@@ -1,0 +1,24 @@
+services:
+  inkheart:
+    image: nobbe/inkheart:latest
+    container_name: inkheart
+    network_mode: bridge
+    ports:
+      - 8080:8080/tcp
+    volumes:
+      - /path/to/media:/media # PDF library
+      - /path/to/covers:/covers # Extracted cover images
+      - /path/to/thumbnails:/thumbnails # Page thumbnails for OpenGraph previews
+      - /path/to/config:/config # User data: pins, collections, settings, full-text search index, optional auth files. Persist to avoid re-indexing on restart.
+    environment:
+      - MEDIA_DIR=/media
+      - IMAGE_DIR=/covers
+      - THUMBNAIL_DIR=/thumbnails
+      - CONFIG_DIR=/config
+      - BIND_ADDR=0.0.0.0
+      - BIND_PORT=8080
+      - SCAN_INTERVAL=600
+      - TEXT_INDEX_ENABLED=true # Set to false to skip PDF text indexing if filename search is enough
+      - FIREBASE_CONFIG_PATH=
+      - FIREBASE_WHITELIST=/config/whitelist.cfg
+    restart: always

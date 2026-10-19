@@ -1,0 +1,177 @@
+image: docker:25.0.2
+
+services:
+  - docker:25.0.2-dind
+
+variables:
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: '/certs'
+  DOCKER_CERT_PATH: '/certs/client'
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_BUILDKIT: 1
+  DOCKER_CLI_EXPERIMENTAL: enabled
+
+before_script:
+  - until [ -f /certs/client/ca.pem ]; do echo "Waiting for certs..."; sleep 1; done
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker context create builder --docker "host=$DOCKER_HOST,ca=/certs/client/ca.pem,cert=/certs/client/cert.pem,key=/certs/client/key.pem"
+  - docker buildx create --use --driver docker-container builder --platform linux/amd64,linux/arm64
+  - docker buildx inspect --bootstrap
+  - apk update
+  - apk add git
+  - git config --global user.email "gitlab-runner@example.com"
+  - git config --global user.name "GitLab Runner"
+
+stages:
+  - test
+  - build
+  - integration
+  - push
+
+preemptive-merge-unit-tests:
+  stage: test
+  needs: []
+  variables:
+    GIT_CHECKOUT: 'false'
+    GIT_STRATEGY: 'clone'
+    GIT_DEPTH: '0'
+  only:
+    - merge_requests
+  script:
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git checkout -B $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git merge $CI_COMMIT_SHA
+    - ./ci-cd/unit-tests.cicd.sh
+
+preemptive-merge-build:
+  stage: build
+  needs: []
+  timeout: 1h
+  variables:
+    GIT_CHECKOUT: 'false'
+    GIT_STRATEGY: 'clone'
+    GIT_DEPTH: '0'
+  only:
+    - merge_requests
+  script:
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git checkout -B $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git merge $CI_COMMIT_SHA
+    - ./ci-cd/build-amd64.cicd.sh
+    # REMOVED: mkdir -p image
+    # REMOVED: docker save line
+  artifacts:
+    paths:
+      - image
+      - build
+    expire_in: 1 day
+    when: on_success
+
+preemptive-merge-integration-tests:
+  stage: integration
+  needs:
+    - preemptive-merge-build
+  variables:
+    GIT_CHECKOUT: 'false'
+    GIT_STRATEGY: 'clone'
+    GIT_DEPTH: '0'
+  only:
+    - merge_requests
+  script:
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git checkout -B $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - git merge $CI_COMMIT_SHA
+    - docker load -i image/inkheart.tar
+    - ./ci-cd/integration-tests.cicd.sh
+
+unit-tests:
+  stage: test
+  script:
+    - ./ci-cd/unit-tests.cicd.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
+build:
+  stage: build
+  needs: []
+  timeout: 1h
+  script:
+    - ./ci-cd/build-amd64.cicd.sh
+    # REMOVED: mkdir -p image
+    # REMOVED: docker save line
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $MANUAL == "true"
+      when: always
+    - when: always
+  artifacts:
+    paths:
+      - image
+      - build
+    expire_in: 1 day
+    when: on_success
+
+build-arm64:
+  stage: build
+  needs: []
+  timeout: 4h
+  script:
+    - ./ci-cd/build-arm64.cicd.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "push"
+      when: never
+    - if: $CI_COMMIT_REF_NAME != "main"
+      when: never
+    - changes:
+        - VERSION
+      when: always
+    - if: $BUILD_ARM64 == "true"
+      when: always
+    - when: never
+  artifacts:
+    paths:
+      - image/inkheart-arm64.tar
+    expire_in: 1 day
+    when: on_success
+
+integration-tests:
+  stage: integration
+  needs:
+    - build
+  script:
+    - docker load -i image/inkheart.tar
+    - ./ci-cd/integration-tests.cicd.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
+push-to-registry:
+  stage: push
+  needs:
+    - build
+    - job: build-arm64
+      optional: true
+    - integration-tests
+  script:
+    - ./ci-cd/push.cicd.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "push"
+      when: never
+    - if: $CI_COMMIT_REF_NAME != "main"
+      when: never
+    - changes:
+        - VERSION
+    - when: never
+  artifacts:
+    name: 'pdfium binary'
+    paths:
+      - build/libpdfium.so
+      - build/VERSION
+    expire_in: 12 months
+    when: on_success

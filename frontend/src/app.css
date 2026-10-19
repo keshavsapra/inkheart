@@ -1,0 +1,91 @@
+:root {
+  font-family: var(--default-font);
+  line-height: 1.5;
+  font-weight: var(--weight-body);
+
+  color-scheme: light;
+  color: var(--text-color-default);
+  background-color: var(--background);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+a {
+  font-weight: var(--weight-body);
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  overflow: hidden !important;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+.card {
+  box-shadow: var(--elevation-1);
+  background: var(--card-color);
+  border-radius: var(--radius-sm);
+}
+
+#app {
+  text-align: center;
+  height: 100vh;
+  height: 100dvh;
+}
+
+button {
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: var(--weight-body);
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+
+/* Thin scrollbar track */
+::-webkit-scrollbar {
+  width: 0.5rem; /* Adjust as needed */
+}
+
+/* Thin scrollbar handle */
+::-webkit-scrollbar-thumb {
+  background-color: var(--card-subtle);
+  border-radius: var(--radius-md); /* Adjust as needed */
+
+  box-shadow: var(--elvation-1);
+}
+
+/* Optional: Add border to the scrollbar handle */
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--card-color);
+}
+
+/* Optional: Thin scrollbar track when not hovering over the scrollbar */
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar);
+  opacity: 0.8;
+}

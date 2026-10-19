@@ -1,0 +1,213 @@
+@import './media-queries.css';
+
+:root {
+  --default-font: Lato, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --font-2xs: 0.625rem;
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-md: 1.125rem;
+  --font-lg: 1.25rem;
+  --font-xl: 1.375rem;
+  --font-2xl: 1.5rem;
+  --font-3xl: 1.75rem;
+
+  --font-title: var(--font-sm);
+
+  /* font weights*/
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-bold: 700;
+
+  --weight-wordmark: var(--weight-light);
+  --weight-body: var(--weight-regular);
+  --weight-heading: var(--weight-bold);
+  --weight-label: var(--weight-bold);
+
+  /* letter-spacing */
+  --tracking-wordmark: 0.04em;
+  --tracking-label: 0.14em;
+
+  /* corner radius scale */
+  --radius-xs: 2px;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 50%;
+
+  /* focus-visible ring */
+  --focus-ring: 0 0 0 2px var(--background), 0 0 0 4px var(--color-primary-400);
+
+  /* layout */
+  --app-bar-height: 3rem;
+
+  --light-1: white;
+  --light-2: #e4e5f1;
+  --light-3: #d2d3db;
+  --light-4: #9394a5;
+  --light-5: #484b6a;
+
+  --light-2-2: #d7d8ea;
+
+  --light-2-alpha: rgba(215, 216, 234, 0.9);
+
+  --dark-1: #1a1625;
+  --dark-1-1: #201b2d;
+  --dark-2: #2f2b3a;
+  --dark-3: #46424f;
+  --dark-4: #5e5a66;
+  --dark-5: #76737e;
+  --dark-6: #908d96;
+
+  --dark-1-1-alpha: rgba(32, 27, 45, 0.9);
+  --dark-3-alpha: rgba(47, 43, 58, 0.5);
+
+  --color-primary-100: #382bf0;
+  --color-primary-200: #5e43f3;
+  --color-primary-300: #7a5af5;
+  --color-primary-400: #9171f8;
+  --color-primary-500: #a688fa;
+  --color-primary-600: #ba9ffb;
+
+  --primary-green: #39b54a;
+  --primary-red: #f24333;
+  --primary-blue: #507dbc;
+
+  --error-color: var(--primary-red);
+  --danger-color: var(--primary-red);
+
+  --separator-1: var(--light-4);
+
+  --text-color-light: var(--light-5);
+  --text-color-default: var(--light-5);
+  --text-color-contrast: white;
+
+  --button-secondary: var(--dark-4);
+  --button-primary: var(--color-primary-400);
+  --button-primary-glow: var(--color-primary-600);
+
+  --background: var(--light-2);
+  --foreground: var(--light-1);
+  --card-color: var(--light-1);
+  --card-contrast: var(--light-4);
+
+  --elevation-1: 0px 5px 15px -3px rgba(0, 0, 0, 0.15);
+  --elevation-2: 0px 5px 15px -3px rgba(0, 0, 0, 0.25);
+}
+
+:root.dark {
+  --text-color-light: var(--light-4);
+  --text-color-default: var(--light-2);
+  --text-color-contrast: var(--dark-1);
+
+  --button-secondary: var(--dark-4);
+  --button-primary: var(--color-primary-400);
+  --button-primary-glow: var(--color-primary-600);
+
+  --separator-1: var(--dark-5);
+
+  --background: var(--dark-1);
+  --foreground: var(--dark-3);
+  --card-color: var(--dark-2);
+  --card-contrast: var(--dark-4);
+  --card-subtle: var(--dark-1-1);
+  --card-subtle-alpha: var(--dark-1-1-alpha);
+
+  --scrollbar: var(--dark-3-alpha);
+
+  --elevation-1: 0px 5px 15px -3px rgba(0, 0, 0, 0.2);
+  --elevation-2: 0px 5px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+:root.light {
+  --separator-1: var(--light-4);
+
+  --text-color-light: var(--light-5);
+  --text-color-default: var(--light-5);
+  --text-color-contrast: white;
+
+  --button-secondary: var(--dark-4);
+  --button-primary: var(--color-primary-400);
+  --button-primary-glow: var(--color-primary-600);
+
+  --background: var(--light-2);
+  --foreground: var(--light-1);
+  --card-color: var(--light-1);
+  --card-contrast: var(--light-4);
+  --card-subtle: var(--light-2-2);
+  --card-subtle-alpha: var(--light-2-alpha);
+
+  --scrollbar: var(--light-4);
+
+  --elevation-1: 0px 5px 15px -3px rgba(0, 0, 0, 0.15);
+  --elevation-2: 0px 5px 15px -3px rgba(0, 0, 0, 0.25);
+}
+
+/* svelte-toast global overrides */
+:root {
+  --toastBorderRadius: var(--radius-sm);
+  --toastBorder: 1px solid var(--card-contrast);
+  --toastBoxShadow: var(--elevation-2);
+  --toastMsgPadding: 12px 16px;
+
+  --toastBackground: var(--card-color);
+  --toastColor: var(--text-color-default);
+
+  --toastBarBackground: var(--button-primary);
+
+  --toastBarHeight: 0.15rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color-light: var(--light-4);
+    --text-color-default: var(--light-2);
+    --text-color-contrast: var(--dark-1);
+
+    --button-secondary: var(--dark-4);
+    --button-primary: var(--color-primary-400);
+    --button-primary-glow: var(--color-primary-600);
+
+    --separator-1: var(--dark-5);
+
+    --background: var(--dark-1);
+    --foreground: var(--dark-3);
+    --card-color: var(--dark-2);
+    --card-contrast: var(--dark-4);
+    --card-subtle: var(--dark-1-1);
+    --card-subtle-alpha: var(--dark-1-1-alpha);
+
+    --scrollbar: var(--dark-3-alpha);
+
+    --elevation-1: 0px 5px 15px -3px rgba(0, 0, 0, 0.2);
+    --elevation-2: 0px 5px 15px -3px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --separator-1: var(--light-4);
+
+    --text-color-light: var(--light-5);
+    --text-color-default: var(--light-5);
+    --text-color-contrast: white;
+
+    --button-secondary: var(--dark-4);
+    --button-primary: var(--color-primary-400);
+    --button-primary-glow: var(--color-primary-600);
+
+    --background: var(--light-2);
+    --foreground: var(--light-1);
+    --card-color: var(--light-1);
+    --card-contrast: var(--light-4);
+    --card-subtle: var(--light-2-2);
+    --card-subtle-alpha: var(--light-2-alpha);
+
+    --scrollbar: var(--light-4);
+
+    --elevation-1: 0px 5px 15px -3px rgba(0, 0, 0, 0.15);
+    --elevation-2: 0px 5px 15px -3px rgba(0, 0, 0, 0.25);
+  }
+}

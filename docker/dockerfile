@@ -1,0 +1,132 @@
+####################################################################################################
+## Chef Base - Common base for Rust stages
+####################################################################################################
+FROM lukemathwalker/cargo-chef:latest-rust-1.94.1 AS chef
+
+WORKDIR /inkheart
+
+
+####################################################################################################
+## Planner - Creates the recipe for dependencies
+####################################################################################################
+FROM chef AS planner
+
+COPY ./backend .
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+
+####################################################################################################
+## Rust Tester
+####################################################################################################
+FROM chef AS test
+
+COPY --from=planner /inkheart/recipe.json recipe.json
+
+RUN cargo chef cook --recipe-path recipe.json
+
+COPY ["VERSION", "../"]
+
+COPY ./backend .
+
+RUN cargo test --no-run
+
+CMD ["cargo", "test"]
+
+
+####################################################################################################
+## Rust Builder
+####################################################################################################
+FROM chef AS rust_builder
+
+# Automatically detect the target architecture
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM"
+
+COPY --from=planner /inkheart/recipe.json recipe.json
+
+# Let cargo auto-detect the target instead of hardcoding x86_64
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY ["VERSION", "../"]
+
+COPY ["./backend", "./"]
+
+# Build without explicit --target flag (cargo will use native target)
+RUN cargo build --release
+
+####################################################################################################
+## Vite Builder
+####################################################################################################
+ARG FIREBASE_CONFIG
+ARG VITE_ENV
+ARG BASE_PATH
+FROM node:20.11-slim AS node_builder
+
+WORKDIR /inkheart
+
+# Run install before copying code in order to cache dependencies
+COPY ["frontend/package.json", "frontend/package-lock.json", "./"]
+# Configure npm timeouts for slow ARM64 QEMU emulation and add retry logic
+RUN npm config set fetch-timeout 600000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    (npm install || npm install || npm install)
+
+COPY ["VERSION", "../"]
+
+COPY ["frontend", "./"]
+
+ARG FIREBASE_CONFIG
+ARG VITE_ENV
+ARG BASE_PATH
+
+ENV FIREBASE_CONFIG=${FIREBASE_CONFIG}
+ENV VITE_ENV=${VITE_ENV}
+ENV BASE_PATH=${BASE_PATH}
+
+COPY ./docker/scripts/frontend.sh .
+
+RUN ./frontend.sh
+
+####################################################################################################
+## Exporter
+## use --target export
+####################################################################################################
+FROM scratch AS export
+
+# Copy our build artifacts from release directory (not target-specific subdir)
+COPY --from=rust_builder /inkheart/target/release/inkheart ./
+COPY --from=rust_builder /inkheart/lib/libpdfium.so .
+COPY --from=rust_builder /inkheart/lib/VERSION .
+COPY --from=node_builder /inkheart/dist ./public
+
+####################################################################################################
+## User files (generate passwd/group in a stage that has a shell)
+####################################################################################################
+FROM rust_builder AS userfiles
+
+RUN echo "inkheart:x:1000:1000::/nonexistent:/sbin/nologin" > /tmp/passwd && \
+    echo "inkheart:x:1000:" > /tmp/group
+
+####################################################################################################
+## Final image
+####################################################################################################
+FROM gcr.io/distroless/cc-debian13 AS final
+
+COPY --from=userfiles /tmp/passwd /etc/passwd
+COPY --from=userfiles /tmp/group /etc/group
+
+WORKDIR /inkheart
+
+# Copy our build artifacts
+COPY --from=export ./ ./
+
+# Use an unprivileged user.
+USER inkheart:inkheart
+
+CMD ["/inkheart/inkheart"]
+EXPOSE 8080/tcp
