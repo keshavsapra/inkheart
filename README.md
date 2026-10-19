@@ -21,6 +21,8 @@
 
 ## 📖 About Inkheart
 
+> **Note**: This repository is an enhanced fork of the original **Inkheart** project created by **[Nystik](https://github.com/Nystik-gh)**. It extends the original PDF library by introducing native **EPUB support**, multi-architecture GitHub Actions CI/CD (`linux/amd64` & `linux/arm64`), and web reader improvements.
+
 **Inkheart** is a minimalist, self-hosted digital library designed around one core philosophy: **your filesystem is the source of truth**. 
 
 Instead of requiring an external database, complex schemas, or manual book metadata curation, Inkheart scans your media directory as an on-disk folder tree. It extracts high-resolution covers, compiles an instant full-text search index, and provides sleek, integrated web readers for both **PDF** and **EPUB** documents.
@@ -208,7 +210,9 @@ inkheart/
 
 ---
 
-## 📄 License
+## 📄 License & Credits
 
-Inkheart is licensed under the [Apache License, Version 2.0](LICENSE).
-Logo and branding assets are copyright of their respective authors.
+- Inkheart was originally created by **[Nystik](https://github.com/Nystik-gh)** ([original repo](https://github.com/Nystik-gh/inkheart) · [support Nystik on Ko-fi](https://ko-fi.com/nystik)).
+- EPUB support, multi-architecture GitHub Actions, and enhancements by **[Keshav Sapra](https://github.com/keshavsapra)**.
+- Licensed under the **[Apache License, Version 2.0](LICENSE)**. You are free to use, modify, and distribute this software in accordance with the terms of the Apache 2.0 license.
+- Logo and branding assets are copyright of their respective authors.
