@@ -4,10 +4,10 @@
   <p><strong>Lightweight, self-hosted PDF & EPUB library indexer and web reader.</strong></p>
 
   <p>
-    <a href="https://github.com"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
-    <img src="https://img.shields.io/badge/Platform-Docker%20%7C%20AMD64%20%7C%20ARM64-blue?logo=docker" alt="Platform"></a>
+    <a href="https://github.com/keshavsapra/inkheart"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+    <img src="https://img.shields.io/badge/Platforms-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20ARM64-blue?logo=docker" alt="Platform">
     <img src="https://img.shields.io/badge/Formats-PDF%20%7C%20EPUB-orange" alt="Supported Formats">
-    <a href="https://ko-fi.com/nystik"><img src="https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=kofi&logoColor=white" alt="Ko-fi"></a>
+    <a href="https://github.com/keshavsapra/inkheart/actions"><img src="https://github.com/keshavsapra/inkheart/actions/workflows/docker.yml/badge.svg" alt="Build Status"></a>
   </p>
 </div>
 
@@ -41,7 +41,7 @@ Inkheart is intentionally lightweight and focused. It is not an unwieldy comic/m
 - 📌 **Sidebar Pins & Collections** — Pin favorite folders to your sidebar or group documents into custom collections.
 - 🔗 **Direct Page & Location Linking** — Link directly to any page or chapter (e.g. `/reader/:id?page=4`), with OpenGraph social preview cards.
 - 📱 **Mobile & Tablet Optimized** — Responsive drawer sidebars, auto-collapsing toolbars, and touch navigation.
-- 🐳 **Multi-Arch Docker Images** — Prebuilt for **AMD64** (x86_64) and **ARM64** (Raspberry Pi 4B+, Apple Silicon, ARM servers).
+- 🌐 **Multi-Architecture Support** — Prebuilt Docker images for **`linux/amd64`** and **`linux/arm64`** (runs natively on Ubuntu, Debian, Fedora, Raspberry Pi, Apple Silicon, and NAS platforms).
 - 🔒 **Optional Authentication** — Simple drop-in Firebase Auth gate with account whitelisting.
 
 ---
@@ -53,7 +53,7 @@ Create a `docker-compose.yml` file:
 ```yaml
 services:
   inkheart:
-    image: ghcr.io/<your-github-username>/inkheart:latest # Or build locally: build: .
+    image: ghcr.io/keshavsapra/inkheart:latest
     container_name: inkheart
     restart: unless-stopped
     ports:
@@ -86,42 +86,27 @@ Open **`http://localhost:8080`** in your browser.
 
 ---
 
-## 🍓 Hosting on Raspberry Pi 4B
+## 💻 Cross-Platform Deployment
 
-Inkheart runs great on a Raspberry Pi 4B (ARM64). Because the GitHub Actions workflow automatically builds native `linux/arm64` images to GitHub Container Registry, **you do not need to compile Rust on the Pi**:
+Inkheart images are published as multi-architecture containers (`linux/amd64` and `linux/arm64`). Docker will automatically detect and pull the optimal binary for your host without any extra configuration:
 
-1. On your Pi, create a folder for Inkheart:
-   ```bash
-   mkdir -p ~/inkheart/books ~/inkheart/covers ~/inkheart/thumbnails ~/inkheart/config
-   cd ~/inkheart
-   ```
+- **Linux / VPS**: Ubuntu, Debian, Fedora, Arch, Alpine, etc.
+- **Home Servers & NAS**: Synology, Unraid, TrueNAS SCALE, QNAP, or Portainer.
+- **Single-Board Computers**: Raspberry Pi (4B / 5), Rock Pi, Orange Pi, and other ARM64 systems.
+- **macOS / Windows**: Via Docker Desktop (native ARM64 execution on Apple Silicon M-series chips).
 
-2. Create `docker-compose.yml` using the configuration above (setting `image: ghcr.io/<your-username>/inkheart:latest`).
-3. Run:
-   ```bash
-   docker compose up -d
-   ```
-4. Access Inkheart from any device on your local network: `http://<your-pi-ip>:8080`.
-
----
-
-## 🛠️ GitHub Actions CI/CD
-
-This repository includes an automated multi-arch GitHub Actions workflow ([`.github/workflows/docker.yml`](.github/workflows/docker.yml)) that:
-- Automatically builds for **`linux/amd64`** and **`linux/arm64`**.
-- Publishes the container image to **GitHub Container Registry (`ghcr.io`)** on every push to `main` or release tag.
-- Uses BuildKit layer caching for lightning-fast subsequent builds.
-
-To use it with your own GitHub account:
+### Docker CLI Example
 ```bash
-git init
-git add .
-git commit -m "Initial commit with EPUB support & GitHub Actions"
-git remote add origin https://github.com/<your-username>/inkheart.git
-git branch -M main
-git push -u origin main
+docker run -d \
+  --name inkheart \
+  --restart unless-stopped \
+  -p 8080:8080 \
+  -v /path/to/your/books:/media \
+  -v /path/to/covers:/covers \
+  -v /path/to/thumbnails:/thumbnails \
+  -v /path/to/config:/config \
+  ghcr.io/keshavsapra/inkheart:latest
 ```
-The GitHub Action will automatically trigger, build the multi-arch image, and publish it under your GitHub Packages tab.
 
 ---
 
@@ -149,21 +134,46 @@ Inkheart supports configuration through environment variables or an `inkheart.to
 
 ---
 
-## 🌐 Reverse Proxy Subdirectory
+## 🌐 Reverse Proxy & Subdirectory Setup
 
-To serve Inkheart from a subpath (e.g., `https://example.com/library/`):
+To serve Inkheart behind a reverse proxy (such as Nginx, Caddy, Traefik, or Cloudflare Tunnels):
 
-1. Set `BASE_PATH=/library` in your container environment.
-2. In your Nginx configuration:
-   ```nginx
-   location /library/ {
-       proxy_pass http://127.0.0.1:8080/;
-       proxy_set_header Host $host;
-       proxy_set_header X-Real-IP $remote_addr;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-   }
-   ```
+### Nginx Root Domain
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+### Subdirectory (e.g. `/library/`)
+Set `BASE_PATH=/library` in your container environment, then configure Nginx:
+```nginx
+location /library/ {
+    proxy_pass http://127.0.0.1:8080/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+---
+
+## 🛠️ Building from Source & CI/CD
+
+If you want to build locally or customize the code:
+
+### Local Docker Build
+```bash
+docker build -t inkheart:local -f docker/dockerfile .
+```
+
+### Automated CI/CD
+This repository includes an automated GitHub Actions workflow ([`.github/workflows/docker.yml`](.github/workflows/docker.yml)) that builds multi-arch images (`linux/amd64`, `linux/arm64`) on every push and publishes them directly to GitHub Container Registry (`ghcr.io`).
 
 ---
 
