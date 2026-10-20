@@ -25,7 +25,7 @@
   import { getMeta } from '../../../utils/meta'
   import { selectedTheme } from '../../../stores/options'
   import { defaultZoomStore } from '../../../stores/reader'
-  import { getActiveTheme, updateTheme } from '../../../lib/theme'
+  import { getActiveTheme, isDarkTheme, updateTheme } from '../../../lib/theme'
 
   import IframeToolbarBackButton from './IframeToolbarBackButton.svelte'
   import IframeToolbarDarkModeButton from './IframeToolbarDarkModeButton.svelte'
@@ -149,7 +149,8 @@
       props: {
         iframe,
         onToggle: () => {
-          const newTheme = getActiveTheme() === 'dark' ? 'light' : 'dark'
+          const isDark = isDarkTheme($selectedTheme)
+          const newTheme = isDark ? 'light' : 'dark'
           updateTheme(newTheme)
           applyTheme()
         },
@@ -160,7 +161,7 @@
   const applyTheme = () => {
     if (!iframe?.contentDocument) return
 
-    const isDark = getActiveTheme() === 'dark'
+    const isDark = isDarkTheme($selectedTheme)
 
     const existingStyle = iframe.contentDocument.getElementById('pdf-theme-override')
 

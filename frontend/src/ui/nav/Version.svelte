@@ -25,6 +25,6 @@
 </script>
 
 <div class="version">
-  <span class="version-number">{compact ? version : `v${version}`}</span>
+  <span class="version-number">{compact ? version : `Version ${version}`}</span>
   <span class="version-name" class:hidden="{compact}">({codename})</span>
 </div>

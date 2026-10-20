@@ -5,6 +5,7 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
+    max-width: 100%;
     overflow: hidden;
     text-align: left;
     background: var(--background);
@@ -15,6 +16,9 @@
     display: flex;
     flex: 1;
     min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
   }
 
@@ -156,15 +160,45 @@
     position: relative;
     flex: 1;
     height: 100%;
+    width: 100%;
     min-width: 0;
+    max-width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
   }
 
   .viewer-container {
     width: 100%;
+    max-width: 900px;
     height: 100%;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+
+  .viewer-container :global(.epub-container) {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .viewer-container :global(.epub-view) {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .viewer-container :global(iframe) {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    border: none !important;
   }
 
   /* Floating Navigation Pill */
@@ -173,7 +207,7 @@
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 5;
+    z-index: 25;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
@@ -181,12 +215,13 @@
     width: max-content;
     height: 36px;
     padding: 0 8px;
-    border: 1px solid var(--card-color);
+    border: 1px solid var(--card-contrast, var(--card-color));
     border-radius: 999px;
     background: var(--card-color);
     box-shadow: var(--elevation-2);
     white-space: nowrap;
     user-select: none;
+    pointer-events: auto;
   }
 
   .pill-btn {
@@ -216,6 +251,12 @@
     color: var(--text-color-default);
     font-size: var(--font-xs);
     font-variant-numeric: tabular-nums;
+  }
+
+  .pill-sub {
+    color: var(--text-color-light);
+    font-size: var(--font-2xs);
+    margin-left: 2px;
   }
 
   /* Navigation Margin Zones */
@@ -295,6 +336,7 @@
   import Icon from '@iconify/svelte'
   import ePub, { type Book, type Rendition, type NavItem } from 'epubjs'
   import { selectedTheme } from '../../../stores/options'
+  import { isDarkTheme, updateTheme } from '../../../lib/theme'
   import { savePageProgress, loadEpubProgress } from '../../../stores/reader'
   import { usingAuth } from '../../../stores/auth'
   import { getToken } from '../../../lib/localstorage'
@@ -326,30 +368,31 @@
   let currentCfi = ''
   let activeHref = ''
 
-  $: isDark =
-    $selectedTheme === 'dark' ||
-    ($selectedTheme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  let locationsReady = false
+  let currentLocation = 0
+  let totalLocations = 0
+  let progressPercentage = 0
 
-  $: if (rendition) {
-    applyTheme(isDark)
+  $: darkIcon = isDarkTheme($selectedTheme)
+
+  $: if (rendition && $selectedTheme) {
+    applyTheme($selectedTheme)
   }
 
   const authHeaders = (): Record<string, string> => (get(usingAuth) ? { Authorization: `Bearer ${getToken()}` } : {})
 
-  function applyTheme(dark: boolean) {
+  function applyTheme(themeName: string) {
     if (!rendition) return
-    const themeName = dark ? 'inkheart-dark' : 'inkheart-light'
-    rendition.themes.select(themeName)
+    let activeKey = themeName
+    if (activeKey === 'system') {
+      activeKey = isDarkTheme('system') ? 'dark' : 'light'
+    }
+    rendition.themes.select(`theme-${activeKey}`)
   }
 
   function toggleTheme() {
-    if ($selectedTheme === 'dark') {
-      selectedTheme.set('light')
-    } else if ($selectedTheme === 'light') {
-      selectedTheme.set('dark')
-    } else {
-      selectedTheme.set(isDark ? 'light' : 'dark')
-    }
+    const isDark = isDarkTheme($selectedTheme)
+    updateTheme(isDark ? 'light' : 'dark')
   }
 
   function handleBack() {
@@ -393,6 +436,19 @@
         sidebarOpen = false
       }
     }
+  }
+
+  function updateLocationProgress(cfi: string) {
+    if (!book?.locations) return
+    try {
+      const loc = book.locations.locationFromCfi(cfi)
+      if (typeof loc === 'number' && loc >= 0) {
+        currentLocation = loc + 1
+        totalLocations = book.locations.total || 0
+        const pct = book.locations.percentageFromCfi(cfi)
+        progressPercentage = Math.round((pct || 0) * 100)
+      }
+    } catch (_) {}
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -450,52 +506,97 @@
       const spine = await book.loaded.spine
       totalChapters = spine?.length || 0
 
-      // Render to container
+      // Render to container (spread: 'none' ensures single page view without horizontal overflow)
       rendition = book.renderTo(viewerContainer, {
         width: '100%',
         height: '100%',
         flow: 'paginated',
-        spread: 'auto',
+        spread: 'none',
       })
 
-      // Register themes
-      rendition.themes.register('inkheart-dark', {
-        body: {
-          background: 'var(--background, #18181b) !important',
-          color: 'var(--text-color-default, #e4e4e7) !important',
-          'font-family': 'system-ui, -apple-system, sans-serif !important',
-          'line-height': '1.6 !important',
-        },
-        'p, div, span, li, blockquote': {
-          color: 'var(--text-color-default, #e4e4e7) !important',
-        },
-        'h1, h2, h3, h4, h5, h6': {
-          color: '#ffffff !important',
-        },
-        'a, a:link, a:visited': {
-          color: 'var(--color-primary-400, #818cf8) !important',
-        },
+      // Register theme styles
+      const baseBodyRules = {
+        'font-family': 'system-ui, -apple-system, sans-serif !important',
+        'line-height': '1.6 !important',
+        'padding': '0 24px !important',
+        'box-sizing': 'border-box !important',
+        'max-width': '100% !important',
+        'overflow-x': 'hidden !important',
+      }
+      const mediaRules = {
+        'max-width': '100% !important',
+        'height': 'auto !important',
+      }
+      const textRules = {
+        'word-break': 'break-word !important',
+        'overflow-wrap': 'break-word !important',
+      }
+
+      rendition.themes.register('theme-dark', {
+        body: { ...baseBodyRules, background: '#1a1625 !important', color: '#e4e5f1 !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#e4e5f1 !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#ffffff !important' },
+        'a, a:link, a:visited': { color: '#9171f8 !important' },
+        'img, svg, table': mediaRules,
       })
 
-      rendition.themes.register('inkheart-light', {
-        body: {
-          background: 'var(--background, #ffffff) !important',
-          color: 'var(--text-color-default, #18181b) !important',
-          'font-family': 'system-ui, -apple-system, sans-serif !important',
-          'line-height': '1.6 !important',
-        },
-        'p, div, span, li, blockquote': {
-          color: 'var(--text-color-default, #18181b) !important',
-        },
-        'h1, h2, h3, h4, h5, h6': {
-          color: '#000000 !important',
-        },
-        'a, a:link, a:visited': {
-          color: 'var(--color-primary-500, #6366f1) !important',
-        },
+      rendition.themes.register('theme-light', {
+        body: { ...baseBodyRules, background: '#ffffff !important', color: '#484b6a !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#484b6a !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#1a1625 !important' },
+        'a, a:link, a:visited': { color: '#5e43f3 !important' },
+        'img, svg, table': mediaRules,
       })
 
-      applyTheme(isDark)
+      rendition.themes.register('theme-glassmorphism', {
+        body: { ...baseBodyRules, background: '#0f172a !important', color: '#f8fafc !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#f8fafc !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#38bdf8 !important' },
+        'a, a:link, a:visited': { color: '#38bdf8 !important' },
+        'img, svg, table': mediaRules,
+      })
+
+      rendition.themes.register('theme-neomorphism', {
+        body: { ...baseBodyRules, background: '#e6ecf5 !important', color: '#2d3748 !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#2d3748 !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#1a202c !important' },
+        'a, a:link, a:visited': { color: '#6366f1 !important' },
+        'img, svg, table': mediaRules,
+      })
+
+      rendition.themes.register('theme-aurora', {
+        body: { ...baseBodyRules, background: '#090d16 !important', color: '#f1f5f9 !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#f1f5f9 !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#10b981 !important' },
+        'a, a:link, a:visited': { color: '#34d399 !important' },
+        'img, svg, table': mediaRules,
+      })
+
+      rendition.themes.register('theme-neo-brutalism', {
+        body: { ...baseBodyRules, background: '#fdfbf7 !important', color: '#000000 !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#000000 !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#ff5277 !important' },
+        'a, a:link, a:visited': { color: '#e02854 !important' },
+        'img, svg, table': mediaRules,
+      })
+
+      rendition.themes.register('theme-cyberpunk', {
+        body: { ...baseBodyRules, background: '#0d0221 !important', color: '#00f0ff !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#00f0ff !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#ff007f !important' },
+        'a, a:link, a:visited': { color: '#ffe600 !important' },
+        'img, svg, table': mediaRules,
+      })
+
+      rendition.themes.register('theme-monochrome', {
+        body: { ...baseBodyRules, background: '#0a0a0a !important', color: '#ededed !important' },
+        'p, div, span, li, blockquote': { ...textRules, color: '#ededed !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#ffffff !important' },
+        'a, a:link, a:visited': { color: '#ffffff !important' },
+        'img, svg, table': mediaRules,
+      })
+
+      applyTheme($selectedTheme)
 
       // Listen to relocation events for progress tracking
       rendition.on('relocated', (location: any) => {
@@ -503,6 +604,10 @@
         currentCfi = location.start.cfi || ''
         const spineIndex = location.start.index ?? 0
         currentChapterIndex = spineIndex
+
+        if (locationsReady) {
+          updateLocationProgress(currentCfi)
+        }
 
         // Save reading progress
         if (fileId) {
@@ -512,6 +617,18 @@
         if (location.start.href) {
           activeHref = location.start.href
         }
+      })
+
+      // Generate background locations for page numbering
+      book.ready.then(() => {
+        return book?.locations.generate(1024)
+      }).then(() => {
+        locationsReady = true
+        if (currentCfi) {
+          updateLocationProgress(currentCfi)
+        }
+      }).catch((e) => {
+        console.warn('Epub locations generation skipped:', e)
       })
 
       // Determine initial position
@@ -565,7 +682,7 @@
 
     <div class="cluster">
       <button class="icon-btn" on:click="{toggleTheme}" title="Toggle Theme">
-        <Icon icon="{isDark ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'}" width="20" height="20" />
+        <Icon icon="{darkIcon ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'}" width="20" height="20" />
       </button>
       <button class="icon-btn" on:click="{toggleFullscreen}" title="Fullscreen">
         <Icon icon="material-symbols:fullscreen-rounded" width="20" height="20" />
@@ -649,17 +766,20 @@
       <!-- Floating Bottom Navigation Pill -->
       {#if !loading && !errorMsg}
         <div class="reader-pill">
-          <button class="pill-btn" on:click="{prev}" title="Previous">
+          <button class="pill-btn" on:click="{prev}" title="Previous Page">
             <Icon icon="material-symbols:chevron-left-rounded" width="20" height="20" />
           </button>
           <div class="pill-label">
-            {#if totalChapters > 0}
-              <span>ch. {currentChapterIndex + 1} / {totalChapters}</span>
+            {#if locationsReady && totalLocations > 0}
+              <span>Page {currentLocation} / {totalLocations}</span>
+              <span class="pill-sub">({progressPercentage}%)</span>
+            {:else if totalChapters > 0}
+              <span>Chapter {currentChapterIndex + 1} / {totalChapters}</span>
             {:else}
               <span>Reading</span>
             {/if}
           </div>
-          <button class="pill-btn" on:click="{next}" title="Next">
+          <button class="pill-btn" on:click="{next}" title="Next Page">
             <Icon icon="material-symbols:chevron-right-rounded" width="20" height="20" />
           </button>
         </div>

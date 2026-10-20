@@ -244,7 +244,7 @@
   import { getToken } from '../../../lib/localstorage'
   import { defaultZoomStore, pageSpreadModeStore, collapsibleToolbarStore } from '../../../stores/reader'
   import { selectedTheme } from '../../../stores/options'
-  import { getActiveTheme, updateTheme } from '../../../lib/theme'
+  import { getActiveTheme, isDarkTheme, updateTheme } from '../../../lib/theme'
   import { routeUrl } from '../../../utils/path'
   import { getMeta } from '../../../utils/meta'
   import { setReaderContext, clearReaderContext } from '../../../stores/reader-context'
@@ -337,9 +337,7 @@
     initialPositionSettled = true
   }
 
-  $: isDark =
-    $selectedTheme === 'dark' ||
-    ($selectedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  $: isDark = isDarkTheme($selectedTheme)
 
   const authHeaders = (): Record<string, string> => (get(usingAuth) ? { Authorization: `Bearer ${getToken()}` } : {})
 

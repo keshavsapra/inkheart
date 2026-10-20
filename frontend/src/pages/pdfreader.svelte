@@ -1,10 +1,12 @@
 <style>
   main {
-    /* max-width: calc(100vw - 5rem); */
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     height: 100%;
 
     box-sizing: border-box;
-    overflow-y: hidden;
+    overflow: hidden;
   }
 
   .toolbar {

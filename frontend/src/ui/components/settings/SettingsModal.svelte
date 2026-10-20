@@ -143,18 +143,6 @@
     padding: 2rem 0;
   }
 
-  .footer {
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    border-top: 1px solid var(--card-color);
-    flex-shrink: 0;
-  }
-
-  .footer .spacer {
-    flex: 1;
-  }
-
   @media (max-width: 768px) {
     .body {
       width: 95vw;
@@ -183,6 +171,7 @@
     useLegacyReaderStore,
     collapsibleToolbarStore,
   } from '../../../stores/reader'
+  import { selectedTheme } from '../../../stores/options'
 
   export let open = false
 
@@ -261,6 +250,30 @@
     </div>
 
     <div class="content">
+      <div class="setting-section">
+        <p class="setting-heading">Appearance</p>
+
+        <div class="setting-row">
+          <div class="meta">
+            <div class="title">Theme</div>
+            <div class="description">Select the visual theme for Inkheart.</div>
+          </div>
+          <div class="control">
+            <select bind:value="{$selectedTheme}" aria-label="Theme">
+              <option value="system">System (Auto)</option>
+              <option value="dark">Dark theme</option>
+              <option value="light">Light theme</option>
+              <option value="glassmorphism">Glassmorphism</option>
+              <option value="neomorphism">Neomorphism</option>
+              <option value="aurora">Aurora / Mesh Gradients Theme</option>
+              <option value="neo-brutalism">Neo-Brutalism Theme</option>
+              <option value="cyberpunk">Cyberpunk / Synthwave Theme</option>
+              <option value="monochrome">Minimalist Monochrome Theme</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="setting-section">
         <p class="setting-heading">Reader <span class="qualifier">(Browser only)</span></p>
 
@@ -382,18 +395,6 @@
           </div>
         {/if}
       </div>
-    </div>
-
-    <div class="footer">
-      <span class="spacer"></span>
-      <a href="https://ko-fi.com/U7U06VWIR" target="_blank" rel="noreferrer">
-        <img
-          height="36"
-          style="border:0px;height:36px;"
-          src="https://storage.ko-fi.com/cdn/kofi6.png?v=6"
-          alt="Buy Me a Coffee at ko-fi.com"
-        />
-      </a>
     </div>
   </div>
 </Modal>

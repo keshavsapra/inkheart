@@ -63,7 +63,7 @@
 
 <script lang="ts">
   import Icon from '@iconify/svelte'
-  import { getActiveTheme, updateTheme } from '../../../../../lib/theme'
+  import { getActiveTheme, isDarkTheme, updateTheme } from '../../../../../lib/theme'
   import { selectedTheme } from '../../../../../stores/options'
   import { documentCardModeStore } from '../../../../../stores/reader'
   import Popover from '../../../popover/Popover.svelte'
@@ -72,11 +72,11 @@
 
   export let withHeader = false
 
-  $: isDarkMode = $selectedTheme && getActiveTheme() === 'dark'
+  $: isDarkMode = $selectedTheme && isDarkTheme($selectedTheme)
 
   const toggleDarkmode = () => {
-    const active = getActiveTheme()
-    const newTheme = active === 'dark' ? 'light' : 'dark'
+    const isDark = isDarkTheme($selectedTheme)
+    const newTheme = isDark ? 'light' : 'dark'
 
     updateTheme(newTheme)
   }

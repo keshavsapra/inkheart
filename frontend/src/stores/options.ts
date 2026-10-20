@@ -10,7 +10,16 @@ type SearchMode = 'all' | 'file' | 'dir'
 
 const searchModeStore = persist<SearchMode>(writable('all'), createLocalStorage(), 'searchMode')
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme =
+  | 'light'
+  | 'dark'
+  | 'system'
+  | 'glassmorphism'
+  | 'neomorphism'
+  | 'aurora'
+  | 'neo-brutalism'
+  | 'cyberpunk'
+  | 'monochrome'
 
 const selectedTheme = persist<Theme>(writable('system'), createLocalStorage(), 'theme')
 
