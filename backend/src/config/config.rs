@@ -22,7 +22,6 @@ pub struct Config {
     pub whitelist: Option<String>,
     pub clacks_overhead_msg: String,
     pub basepath: Option<String>,
-    pub telemetry_enabled: bool,
     pub text_index_enabled: bool,
 }
 
@@ -56,8 +55,6 @@ pub struct ConfigToml {
     pub clacks_overhead_msg: Option<String>,
     #[serde(alias = "BASE_PATH")]
     pub basepath: Option<String>,
-    #[serde(alias = "TELEMETRY_ENABLED")]
-    pub telemetry_enabled: Option<bool>,
     #[serde(alias = "TEXT_INDEX_ENABLED")]
     pub text_index_enabled: Option<bool>,
 }
@@ -122,10 +119,6 @@ impl Config {
             .map(|s| s.to_string_lossy().into_owned())
             .filter(|s| !s.is_empty());
 
-        let telemetry_enabled = env::var_os("TELEMETRY_ENABLED")
-            .and_then(|s| s.to_string_lossy().parse().ok())
-            .unwrap_or(true);
-
         let text_index_enabled = env::var_os("TEXT_INDEX_ENABLED")
             .and_then(|s| s.to_string_lossy().parse().ok())
             .unwrap_or(true);
@@ -157,7 +150,6 @@ impl Config {
             whitelist,
             clacks_overhead_msg,
             basepath,
-            telemetry_enabled,
             text_index_enabled,
         };
 

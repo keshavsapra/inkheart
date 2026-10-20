@@ -183,7 +183,6 @@
   import PdfReader from './pages/pdfreader.svelte'
   import CollectionPage from './pages/collection.svelte'
   import Login from './pages/login.svelte'
-  import TelemetryBanner from './ui/components/banner/TelemetryBanner.svelte'
 
   import { onMount } from 'svelte'
   import { initFirebase } from './lib/firebase'
@@ -212,30 +211,6 @@
   $: show_app_chrome = !($location.pathname.startsWith('/fullscreen') || $location.pathname.startsWith('/embed'))
 
   let sidebarOpen: boolean
-  let showTelemetryBanner = false
-
-  interface UserSettingsResponse {
-    telemetry_enabled: boolean
-    telemetry_banner_shown: boolean
-    telemetry_config_override: boolean
-  }
-
-  const checkTelemetryBanner = async () => {
-    try {
-      const response = await fetch(...createGetRequest(apiUrl('api/settings')))
-      if (response.ok) {
-        const data: UserSettingsResponse = await response.json()
-        // Show banner if it hasn't been shown yet and telemetry is not overridden by config
-        showTelemetryBanner = !data.telemetry_banner_shown && !data.telemetry_config_override
-      }
-    } catch (e) {
-      console.error('Failed to check telemetry banner status:', e)
-    }
-  }
-
-  const handleBannerClose = () => {
-    showTelemetryBanner = false
-  }
 
   const onBarBackKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -262,7 +237,6 @@
     } else {
       loading = false
       logged_in = true
-      checkTelemetryBanner()
       initTextIndexToast()
     }
   })
@@ -278,7 +252,6 @@
         user.getIdToken().then((idToken) => {
           setToken(idToken)
           loading = false
-          checkTelemetryBanner()
           initTextIndexToast()
         })
       }
@@ -375,9 +348,6 @@
         <Main directory="{params.item}" />
       </Route>
     </div>
-    {#if showTelemetryBanner && logged_in}
-      <TelemetryBanner onClose="{handleBannerClose}" />
-    {/if}
   {:else}
     <div class="loader-container">
       <div class="loader">

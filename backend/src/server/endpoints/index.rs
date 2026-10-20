@@ -7,21 +7,9 @@ use crate::server::{
     utils::{escape_html_attribute, hydrate_index_html},
 };
 
-use crate::telemetry::send_heartbeat;
-
 pub async fn index(data: web::Data<AppState>) -> io::Result<impl Responder> {
     let html = fs::read_to_string("./public/index.html")?;
     let config = data.get_config()?;
-
-    let user_settings = data.get_user_settings()?;
-
-    if config.telemetry_enabled
-        && user_settings.telemetry_enabled
-        && user_settings.telemetry_banner_shown
-    {
-        let library_size = data.get_lookup()?.len();
-        send_heartbeat(crate::VERSION, library_size, true);
-    }
 
     let title = "Inkheart".to_string();
     let img = "/static/inkheart.png".to_string();

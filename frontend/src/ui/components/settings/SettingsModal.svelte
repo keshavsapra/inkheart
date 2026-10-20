@@ -122,27 +122,6 @@
     border-color: var(--color-primary-400);
   }
 
-  .learn {
-    all: unset;
-    display: inline-block;
-    margin-top: 8px;
-    font-size: var(--font-xs);
-    color: var(--color-primary-500);
-    text-decoration: underline;
-    cursor: pointer;
-  }
-
-  .learn:hover {
-    color: var(--text-color-default);
-  }
-
-  .loader {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem 0;
-  }
-
   @media (max-width: 768px) {
     .body {
       width: 95vw;
@@ -159,10 +138,6 @@
   import Icon from '@iconify/svelte'
   import IconButton from '../button/IconButton.svelte'
   import Toggle from '../input/Toggle.svelte'
-  import { SyncLoader } from 'svelte-loading-spinners'
-  import { createGetRequest, createPatchRequest } from '../../../lib/create-request'
-  import { apiUrl } from '../../../utils/api'
-  import TelemetryInfoModal from '../banner/TelemetryInfoModal.svelte'
   import {
     progressTrackingStore,
     pageSpreadModeStore,
@@ -175,72 +150,12 @@
 
   export let open = false
 
-  interface UserSettingsResponse {
-    telemetry_enabled: boolean
-    telemetry_banner_shown: boolean
-    telemetry_config_override: boolean
-  }
-
-  let telemetryEnabled = false
-  let telemetryConfigOverride = false
-  let loading = true
-  let initialized = false
-  let previousTelemetryValue: boolean | null = null
-  let showTelemetryInfo = false
-
   const handleClose = () => {
     open = false
-  }
-
-  const fetchSettings = async () => {
-    try {
-      loading = true
-      const response = await fetch(...createGetRequest(apiUrl('api/settings')))
-      if (response.ok) {
-        const data: UserSettingsResponse = await response.json()
-        telemetryEnabled = data.telemetry_enabled
-        telemetryConfigOverride = data.telemetry_config_override
-        previousTelemetryValue = data.telemetry_enabled
-        initialized = true
-      } else {
-        console.error('Failed to fetch settings:', response.statusText)
-      }
-    } catch (e) {
-      console.error('Failed to fetch settings:', e)
-    } finally {
-      loading = false
-    }
-  }
-
-  const updateTelemetrySetting = async () => {
-    try {
-      const response = await fetch(
-        ...createPatchRequest(apiUrl('api/settings'), JSON.stringify({ telemetry_enabled: telemetryEnabled }), {
-          'Content-Type': 'application/json',
-        }),
-      )
-      if (!response.ok) {
-        console.error('Failed to update telemetry setting:', response.statusText)
-      } else {
-        previousTelemetryValue = telemetryEnabled
-      }
-    } catch (e) {
-      console.error('Failed to update telemetry setting:', e)
-    }
-  }
-
-  $: if (open && !initialized) {
-    fetchSettings()
-  }
-
-  $: if (initialized && telemetryEnabled !== previousTelemetryValue) {
-    updateTelemetrySetting()
   }
 </script>
 
 <Modal bind:open="{open}">
-  <TelemetryInfoModal bind:open="{showTelemetryInfo}" />
-
   <div class="body">
     <div class="header">
       <h2>Settings</h2>
@@ -360,40 +275,6 @@
             <Toggle bind:checked="{$useLegacyReaderStore}" ariaLabel="Use legacy reader" />
           </div>
         </div>
-      </div>
-
-      <div class="setting-section">
-        <p class="setting-heading">Privacy</p>
-
-        {#if loading}
-          <div class="loader">
-            <SyncLoader size="3" color="var(--button-primary)" unit="rem" duration="1s" />
-          </div>
-        {:else}
-          <div class="setting-row">
-            <div class="meta">
-              <div class="title">Enable Telemetry</div>
-              <div class="description">
-                Help improve Inkheart by sending anonymous instance telemetry (version, library size range,
-                country-level location, and CPU architecture). This information helps guide development priorities and
-                understand how Inkheart is used, without tracking individual users or documents.
-                {#if telemetryConfigOverride}
-                  <br />
-                  <strong>Note:</strong> Telemetry has been disabled in the application configuration.
-                {/if}
-                <br />
-                <button type="button" class="learn" on:click="{() => (showTelemetryInfo = true)}">Learn more</button>
-              </div>
-            </div>
-            <div class="control">
-              <Toggle
-                bind:checked="{telemetryEnabled}"
-                disabled="{telemetryConfigOverride || loading}"
-                ariaLabel="Enable Telemetry"
-              />
-            </div>
-          </div>
-        {/if}
       </div>
     </div>
   </div>

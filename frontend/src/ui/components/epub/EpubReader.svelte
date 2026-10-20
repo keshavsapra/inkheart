@@ -176,28 +176,9 @@
     margin: 0 auto;
     position: relative;
     overflow: hidden;
-    display: flex;
-    justify-content: center;
-  }
-
-  .viewer-container :global(.epub-container) {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    overflow: hidden !important;
-  }
-
-  .viewer-container :global(.epub-view) {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    overflow: hidden !important;
   }
 
   .viewer-container :global(iframe) {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
     border: none !important;
   }
 
@@ -372,6 +353,8 @@
   let currentLocation = 0
   let totalLocations = 0
   let progressPercentage = 0
+  let displayedPage = 1
+  let displayedTotalPages = 1
 
   $: darkIcon = isDarkTheme($selectedTheme)
 
@@ -520,8 +503,6 @@
         'line-height': '1.6 !important',
         'padding': '0 24px !important',
         'box-sizing': 'border-box !important',
-        'max-width': '100% !important',
-        'overflow-x': 'hidden !important',
       }
       const mediaRules = {
         'max-width': '100% !important',
@@ -604,6 +585,11 @@
         currentCfi = location.start.cfi || ''
         const spineIndex = location.start.index ?? 0
         currentChapterIndex = spineIndex
+
+        if (location.start.displayed) {
+          displayedPage = location.start.displayed.page || 1
+          displayedTotalPages = location.start.displayed.total || 1
+        }
 
         if (locationsReady) {
           updateLocationProgress(currentCfi)
@@ -773,8 +759,10 @@
             {#if locationsReady && totalLocations > 0}
               <span>Page {currentLocation} / {totalLocations}</span>
               <span class="pill-sub">({progressPercentage}%)</span>
+            {:else if displayedTotalPages > 1}
+              <span>Ch. {currentChapterIndex + 1} • Pg. {displayedPage} / {displayedTotalPages}</span>
             {:else if totalChapters > 0}
-              <span>Chapter {currentChapterIndex + 1} / {totalChapters}</span>
+              <span>Ch. {currentChapterIndex + 1} / {totalChapters}</span>
             {:else}
               <span>Reading</span>
             {/if}

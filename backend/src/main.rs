@@ -2,7 +2,6 @@ mod config;
 mod indexer;
 mod pdfium;
 mod server;
-mod telemetry;
 mod user_settings;
 
 use std::{fs, path::Path};

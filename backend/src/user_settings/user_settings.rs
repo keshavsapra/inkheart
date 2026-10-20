@@ -1,20 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::Path};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserSettings {
-    pub telemetry_enabled: bool,
-    pub telemetry_banner_shown: bool,
-}
-
-impl Default for UserSettings {
-    fn default() -> Self {
-        UserSettings {
-            telemetry_enabled: true,
-            telemetry_banner_shown: false,
-        }
-    }
-}
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct UserSettings {}
 
 impl UserSettings {
     pub fn load(config_dir: &str) -> io::Result<Self> {

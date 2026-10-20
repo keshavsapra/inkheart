@@ -134,7 +134,6 @@ Inkheart supports configuration through environment variables or an `inkheart.to
 | `BASE_PATH` | Subdirectory path prefix (e.g. `/books`) when behind reverse proxy | `""` |
 | `FIREBASE_CONFIG_PATH` | Path to `firebase.json` for optional Google/email auth | `./firebase.json` |
 | `FIREBASE_WHITELIST` | Path to text file with whitelisted user IDs | None |
-| `TELEMETRY_ENABLED` | Anonymous installation ping | `true` |
 
 ---
 
