@@ -108,6 +108,7 @@
   const { searchActive, loadingSearch, filteredResults, onSearchChange, onClear } = createSearchManager()
 
   let unauthorized = false
+  let errorMessage = ''
   $: loadingLibrary = false
 
   let title = ''
@@ -154,11 +155,30 @@
 
     try {
       loadingLibrary = true
+      errorMessage = ''
+      unauthorized = false
       const response = await fetch(...createGetRequest(endpoint))
+      if (!response.ok) {
+        if (response.status === 401) {
+          unauthorized = true
+          errorMessage = 'Unauthorized'
+        } else if (response.status === 404) {
+          errorMessage = 'Directory not found. Please ensure your media directory is mounted and indexed.'
+        } else {
+          errorMessage = `Failed to load directory (HTTP ${response.status})`
+        }
+        loadingLibrary = false
+        items = []
+        ancestors = []
+        clearFolderContext()
+        return
+      }
+
       const data = await response.json()
 
       unauthorized = false
-      items = data.children
+      errorMessage = ''
+      items = data.children ?? []
       ancestors = data.ancestors ?? []
       title = data.title === 'media' ? '' : data.title
       loadingLibrary = false
@@ -170,9 +190,10 @@
         setGlobalScope()
         clearFolderContext()
       }
-    } catch (e) {
+    } catch (e: any) {
       loadingLibrary = false
-      unauthorized = true
+      unauthorized = false
+      errorMessage = e?.message || 'Failed to load directory'
       ancestors = []
       clearFolderContext()
     }
@@ -209,6 +230,8 @@
 <div class="library">
   {#if unauthorized}
     <ErrorMessage message="Unauthorized" />
+  {:else if errorMessage}
+    <ErrorMessage message="{errorMessage}" />
   {:else}
     <!--<div class="toolbar">
         <SortButton></SortButton>

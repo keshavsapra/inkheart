@@ -72,10 +72,12 @@ services:
       - TEXT_INDEX_ENABLED=true            # Enable full-text search indexing
 ```
 
-Ensure your storage directories exist:
+Ensure your storage directories exist and have proper write permissions (Inkheart runs as non-root UID 1000 inside the container):
 ```bash
 mkdir -p /path/to/covers /path/to/thumbnails /path/to/config /path/to/your/books
+sudo chown -R 1000:1000 /path/to/covers /path/to/thumbnails /path/to/config
 ```
+*(Alternatively, you can set `user: "0:0"` in your `docker-compose.yml` to allow the container to run with host root permissions).*
 
 Start the container:
 ```bash

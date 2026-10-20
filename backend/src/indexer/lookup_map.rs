@@ -243,33 +243,43 @@ impl LookupMap {
 }
 
 fn build_map(dir: &Path, mut map: &mut HashMap<String, ItemRecord>) -> () {
+    let mut dir_record = ItemRecord::from_path(dir);
     if dir.is_dir() {
-        let mut dir_record = ItemRecord::from_path(dir);
-        if let Ok(entries) = fs::read_dir(dir) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-                    if path.is_dir() {
-                        let record = ItemRecord::from_path(&path);
-                        dir_record
-                            .children
-                            .push(SafeItemRecord::from(record.clone()));
-                        build_map(&path, &mut map);
-                    } else {
-                        if let Some(extension) = path.extension() {
-                            let ext = extension.to_ascii_lowercase().to_string_lossy().to_string();
-                            if ext == "pdf" || ext == "epub" {
-                                let record = ItemRecord::from_path(&path);
-                                dir_record
-                                    .children
-                                    .push(SafeItemRecord::from(record.clone()));
-                                map.insert(record.id.clone(), record);
+        match fs::read_dir(dir) {
+            Ok(entries) => {
+                for entry in entries {
+                    if let Ok(entry) = entry {
+                        let path = entry.path();
+                        if path.is_dir() {
+                            let record = ItemRecord::from_path(&path);
+                            dir_record
+                                .children
+                                .push(SafeItemRecord::from(record.clone()));
+                            build_map(&path, &mut map);
+                        } else {
+                            if let Some(extension) = path.extension() {
+                                let ext = extension.to_ascii_lowercase().to_string_lossy().to_string();
+                                if ext == "pdf" || ext == "epub" {
+                                    let record = ItemRecord::from_path(&path);
+                                    dir_record
+                                        .children
+                                        .push(SafeItemRecord::from(record.clone()));
+                                    map.insert(record.id.clone(), record);
+                                }
                             }
                         }
                     }
                 }
             }
+            Err(e) => {
+                eprintln!("Warning: Failed to read media directory '{:?}': {}", dir, e);
+            }
         }
-        map.insert(dir_record.id.clone(), dir_record);
+    } else {
+        eprintln!(
+            "Warning: Media path '{:?}' does not exist or is not a directory",
+            dir
+        );
     }
+    map.insert(dir_record.id.clone(), dir_record);
 }

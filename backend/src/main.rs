@@ -5,7 +5,7 @@ mod server;
 mod telemetry;
 mod user_settings;
 
-use std::path::Path;
+use std::{fs, path::Path};
 
 use config::Config;
 use firebase_admin_auth_rs::jwk_auth::JwkAuth;
@@ -25,6 +25,11 @@ async fn main() -> std::io::Result<()> {
 
     let config = Config::load_config();
     let pdfium = init_pdfium();
+
+    // Ensure required storage directories exist
+    let _ = fs::create_dir_all(&config.cover_root);
+    let _ = fs::create_dir_all(&config.thumbnail_root);
+    let _ = fs::create_dir_all(&config.config_dir);
 
     let auth = match config.firebase_project_id.clone() {
         Some(project_id) => Some(JwkAuth::new(project_id).await),

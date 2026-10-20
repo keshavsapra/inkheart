@@ -19,5 +19,8 @@ services:
       - BIND_PORT=8080
       - SCAN_INTERVAL=600
       - TEXT_INDEX_ENABLED=true # Set to false to skip full-text indexing (PDF/EPUB) if filename search is enough
-      - FIREBASE_CONFIG_PATH=
-      - FIREBASE_WHITELIST=/config/whitelist.cfg
+      # Optional: Uncomment if using Firebase Authentication
+      # - FIREBASE_CONFIG_PATH=/config/firebase.json
+      # - FIREBASE_WHITELIST=/config/whitelist.cfg
+    # If your host directories show 'Permission denied (os error 13)', uncomment the line below:
+    # user: "0:0"
