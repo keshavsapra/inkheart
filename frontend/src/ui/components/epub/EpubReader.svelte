@@ -176,6 +176,12 @@
     margin: 0 auto;
     position: relative;
     overflow: hidden;
+    transition: opacity 150ms ease;
+  }
+
+  .viewer-container.hidden-viewer {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .viewer-container :global(iframe) {
@@ -312,7 +318,7 @@
 </style>
 
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount, onDestroy, tick } from 'svelte'
   import { useNavigate } from 'svelte-navigator'
   import Icon from '@iconify/svelte'
   import ePub, { type Book, type Rendition, type NavItem } from 'epubjs'
@@ -349,6 +355,9 @@
   let currentCfi = ''
   let activeHref = ''
 
+  let flowMode: 'paginated' | 'scrolled' = 'paginated'
+  let isNavigating = false
+
   let locationsReady = false
   let currentLocation = 0
   let totalLocations = 0
@@ -378,6 +387,16 @@
     updateTheme(isDark ? 'light' : 'dark')
   }
 
+  function toggleFlowMode() {
+    flowMode = flowMode === 'paginated' ? 'scrolled' : 'paginated'
+    if (rendition) {
+      rendition.flow(flowMode === 'paginated' ? 'paginated' : 'scrolled-doc')
+      if (currentCfi) {
+        rendition.display(currentCfi)
+      }
+    }
+  }
+
   function handleBack() {
     if (window.history.length > 1) {
       navigate(-1)
@@ -399,15 +418,27 @@
     }
   }
 
-  function next() {
-    if (rendition) {
-      rendition.next()
+  async function next() {
+    if (!rendition || isNavigating) return
+    isNavigating = true
+    try {
+      await rendition.next()
+    } catch (err) {
+      console.warn('Navigation next error:', err)
+    } finally {
+      isNavigating = false
     }
   }
 
-  function prev() {
-    if (rendition) {
-      rendition.prev()
+  async function prev() {
+    if (!rendition || isNavigating) return
+    isNavigating = true
+    try {
+      await rendition.prev()
+    } catch (err) {
+      console.warn('Navigation prev error:', err)
+    } finally {
+      isNavigating = false
     }
   }
 
@@ -444,8 +475,10 @@
 
   let _mql: MediaQueryList | null = null
   let _mediaListener: ((e: MediaQueryListEvent) => void) | null = null
+  let resizeObserver: ResizeObserver | null = null
 
   onDestroy(() => {
+    resizeObserver?.disconnect()
     if (_mql && _mediaListener) {
       _mql.removeEventListener('change', _mediaListener)
     }
@@ -489,12 +522,54 @@
       const spine = await book.loaded.spine
       totalChapters = spine?.length || 0
 
-      // Render to container (spread: 'none' ensures single page view without horizontal overflow)
+      // Render to container using continuous manager to prevent chapter skipping
       rendition = book.renderTo(viewerContainer, {
+        manager: 'continuous',
+        flow: flowMode === 'paginated' ? 'paginated' : 'scrolled-doc',
         width: '100%',
         height: '100%',
-        flow: 'paginated',
         spread: 'none',
+      })
+
+      // Register content hook for robust word wrapping and responsive media
+      rendition.hooks.content.register((contents: any) => {
+        const doc = contents?.document
+        if (!doc) return
+        const style = doc.createElement('style')
+        style.textContent = `
+          * {
+            box-sizing: border-box !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          body {
+            padding: 20px 32px 60px 32px !important;
+            -webkit-font-smoothing: antialiased;
+          }
+          p, div, span, li, blockquote {
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+            hyphens: auto !important;
+          }
+          img, svg, video, image {
+            max-width: 100% !important;
+            max-height: 80vh !important;
+            height: auto !important;
+            object-fit: contain !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          table {
+            max-width: 100% !important;
+            table-layout: fixed !important;
+            word-break: break-word !important;
+          }
+        `
+        doc.head.appendChild(style)
       })
 
       // Register theme styles
@@ -524,7 +599,7 @@
       rendition.themes.register('theme-light', {
         body: { ...baseBodyRules, background: '#ffffff !important', color: '#484b6a !important' },
         'p, div, span, li, blockquote': { ...textRules, color: '#484b6a !important' },
-        'h1, h2, h3, h4, h5, h6': { color: '#1a1625 !important' },
+        'h1, h2, h3, h4, h5, h6': { color: '#1a202c !important' },
         'a, a:link, a:visited': { color: '#5e43f3 !important' },
         'img, svg, table': mediaRules,
       })
@@ -635,6 +710,21 @@
 
       await rendition.display(target)
       loading = false
+
+      await tick()
+      if (rendition) {
+        rendition.resize()
+      }
+
+      // Observe size changes
+      if (viewerContainer) {
+        resizeObserver = new ResizeObserver(() => {
+          if (rendition && !loading) {
+            rendition.resize()
+          }
+        })
+        resizeObserver.observe(viewerContainer)
+      }
     } catch (e: any) {
       console.error('Failed to load EPUB:', e)
       errorMsg = e?.message || 'Failed to open EPUB document'
@@ -667,6 +757,18 @@
     <div class="title" title="{title}">{title || 'EPUB Reader'}</div>
 
     <div class="cluster">
+      <button
+        class="icon-btn"
+        class:active="{flowMode === 'scrolled'}"
+        on:click="{toggleFlowMode}"
+        title="{flowMode === 'paginated' ? 'Switch to Continuous Scroll Mode' : 'Switch to Paginated Mode'}"
+      >
+        <Icon
+          icon="{flowMode === 'paginated' ? 'material-symbols:auto-stories-outline-rounded' : 'material-symbols:format-align-justify-rounded'}"
+          width="20"
+          height="20"
+        />
+      </button>
       <button class="icon-btn" on:click="{toggleTheme}" title="Toggle Theme">
         <Icon icon="{darkIcon ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'}" width="20" height="20" />
       </button>
@@ -735,24 +837,30 @@
         </div>
       {/if}
 
-      <!-- Page turn click zones -->
-      <div class="nav-zone left" role="button" tabindex="0" on:click="{prev}" on:keydown="{(e) => (e.key === 'Enter' || e.key === ' ') && prev()}" title="Previous Page">
-        <div class="nav-zone-btn">
-          <Icon icon="material-symbols:chevron-left-rounded" width="24" height="24" />
+      <!-- Page turn click zones (only in paginated mode) -->
+      {#if flowMode === 'paginated'}
+        <div class="nav-zone left" role="button" tabindex="0" on:click="{prev}" on:keydown="{(e) => (e.key === 'Enter' || e.key === ' ') && prev()}" title="Previous Page">
+          <div class="nav-zone-btn">
+            <Icon icon="material-symbols:chevron-left-rounded" width="24" height="24" />
+          </div>
         </div>
-      </div>
-      <div class="nav-zone right" role="button" tabindex="0" on:click="{next}" on:keydown="{(e) => (e.key === 'Enter' || e.key === ' ') && next()}" title="Next Page">
-        <div class="nav-zone-btn">
-          <Icon icon="material-symbols:chevron-right-rounded" width="24" height="24" />
+        <div class="nav-zone right" role="button" tabindex="0" on:click="{next}" on:keydown="{(e) => (e.key === 'Enter' || e.key === ' ') && next()}" title="Next Page">
+          <div class="nav-zone-btn">
+            <Icon icon="material-symbols:chevron-right-rounded" width="24" height="24" />
+          </div>
         </div>
-      </div>
+      {/if}
 
-      <div bind:this="{viewerContainer}" class="viewer-container" style="display: {loading || errorMsg ? 'none' : 'block'};"></div>
+      <div
+        bind:this="{viewerContainer}"
+        class="viewer-container"
+        class:hidden-viewer="{loading || errorMsg}"
+      ></div>
 
       <!-- Floating Bottom Navigation Pill -->
       {#if !loading && !errorMsg}
         <div class="reader-pill">
-          <button class="pill-btn" on:click="{prev}" title="Previous Page">
+          <button class="pill-btn" on:click="{prev}" title="Previous">
             <Icon icon="material-symbols:chevron-left-rounded" width="20" height="20" />
           </button>
           <div class="pill-label">
@@ -767,7 +875,7 @@
               <span>Reading</span>
             {/if}
           </div>
-          <button class="pill-btn" on:click="{next}" title="Next Page">
+          <button class="pill-btn" on:click="{next}" title="Next">
             <Icon icon="material-symbols:chevron-right-rounded" width="20" height="20" />
           </button>
         </div>
