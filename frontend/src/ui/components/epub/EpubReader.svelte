@@ -148,6 +148,12 @@
     font-size: var(--font-2xs);
   }
 
+  .toc-subsubitem {
+    padding-left: 40px;
+    font-size: var(--font-2xs);
+    opacity: 0.85;
+  }
+
   .scrim {
     position: absolute;
     inset: 0;
@@ -176,6 +182,7 @@
     margin: 0 auto;
     position: relative;
     overflow: hidden;
+    overflow-anchor: none;
     transition: opacity 150ms ease;
   }
 
@@ -442,14 +449,170 @@
     }
   }
 
-  function navigateTo(href: string) {
-    if (rendition) {
-      rendition.display(href)
-      activeHref = href
+  function normalizePath(p: string): string {
+    if (!p) return ''
+    try {
+      p = decodeURIComponent(p)
+    } catch (_) {}
+    return p.replace(/\\/g, '/').replace(/^(\.\/|\.\.\/|\/)+/, '').toLowerCase()
+  }
+
+  function resolveSpineSection(href: string): any {
+    if (!book?.spine) return null
+    if (!href) return book.spine.get(currentChapterIndex)
+
+    const cleanHref = href.trim()
+    const [pathPart, hashPart] = cleanHref.split('#')
+    const cleanPath = pathPart.replace(/^(\.\/|\.\.\/|\/)+/, '')
+
+    // If href is just an anchor (#id), return current section
+    if (!cleanPath && hashPart) {
+      return book.spine.get(currentChapterIndex)
+    }
+
+    // Direct lookup in spine
+    let section = book.spine.get(cleanPath) ||
+                  book.spine.get(pathPart) ||
+                  book.spine.get(cleanHref)
+    if (section) return section
+
+    try {
+      section = book.spine.get(decodeURIComponent(cleanPath))
+      if (section) return section
+    } catch (_) {}
+
+    // Resolve via book.path or book.canonical if available
+    if (book.path && typeof book.path.resolve === 'function') {
+      try {
+        const resolved = book.path.resolve(cleanPath)
+        section = book.spine.get(resolved)
+        if (section) return section
+      } catch (_) {}
+    }
+
+    // Search across spineItems
+    const items = book.spine.spineItems || []
+    const normTarget = normalizePath(cleanPath)
+    const baseTarget = normTarget.split('/').pop()
+
+    // Pass 1: exact or suffix normalized match
+    section = items.find((s: any) => {
+      if (!s.href) return false
+      const normS = normalizePath(s.href)
+      return normS === normTarget || normS.endsWith('/' + normTarget) || normTarget.endsWith('/' + normS)
+    })
+    if (section) return section
+
+    // Pass 2: match by basename (filename)
+    if (baseTarget) {
+      section = items.find((s: any) => {
+        if (!s.href) return false
+        const sBase = normalizePath(s.href).split('/').pop()
+        return sBase === baseTarget
+      })
+      if (section) return section
+    }
+
+    // Pass 3: match by idref
+    if (hashPart || cleanPath) {
+      const idToMatch = hashPart || cleanPath
+      section = items.find((s: any) => s.idref === idToMatch)
+      if (section) return section
+    }
+
+    return null
+  }
+
+  async function navigateTo(href: string) {
+    if (!rendition || !book || isNavigating) return
+    isNavigating = true
+    try {
+      if (!href) return
+      const cleanHref = href.trim()
+      const [, hashPart] = cleanHref.split('#')
+
+      const section = resolveSpineSection(cleanHref)
+      let targetToDisplay: string | number = cleanHref
+
+      if (section) {
+        targetToDisplay = section.href
+        if (hashPart) {
+          try {
+            await section.load(book.load?.bind(book) || (() => Promise.resolve()))
+            const doc = section.document
+            if (doc) {
+              const decodedHash = decodeURIComponent(hashPart)
+              let el = doc.getElementById(hashPart) ||
+                       doc.getElementById(decodedHash) ||
+                       doc.querySelector(`[name="${hashPart}"]`) ||
+                       doc.querySelector(`[name="${decodedHash}"]`)
+
+              if (!el) {
+                try {
+                  el = doc.querySelector(`#${CSS.escape(hashPart)}`) ||
+                       doc.querySelector(`#${CSS.escape(decodedHash)}`)
+                } catch (_) {}
+              }
+
+              if (el && typeof section.cfiFromElement === 'function') {
+                const cfi = section.cfiFromElement(el)
+                if (cfi) {
+                  targetToDisplay = cfi
+                }
+              }
+            }
+          } catch (anchorErr) {
+            console.warn('Anchor CFI resolution failed, falling back to section href:', anchorErr)
+          }
+        }
+      }
+
+      try {
+        await rendition.display(targetToDisplay)
+      } catch (dispErr) {
+        console.warn('rendition.display failed with resolved target, falling back:', dispErr)
+        if (section) {
+          try {
+            await rendition.display(section.href)
+          } catch (_) {
+            await rendition.display(section.index)
+          }
+        } else {
+          await rendition.display(cleanHref)
+        }
+      }
+
+      activeHref = cleanHref
       if (isMobile) {
         sidebarOpen = false
       }
+    } catch (err) {
+      console.error('Failed to navigate to TOC item:', href, err)
+    } finally {
+      isNavigating = false
     }
+  }
+
+  function isItemActive(itemHref: string): boolean {
+    if (!itemHref) return false
+    const cleanItem = itemHref.trim()
+    if (activeHref) {
+      if (activeHref === cleanItem) return true
+      if (activeHref.includes(cleanItem) || cleanItem.includes(activeHref)) return true
+    }
+    const [path] = cleanItem.split('#')
+    const norm = normalizePath(path)
+    const currentSection = book?.spine?.get(currentChapterIndex)
+    if (currentSection?.href) {
+      const normSec = normalizePath(currentSection.href)
+      if (normSec === norm || normSec.endsWith('/' + norm) || norm.endsWith('/' + normSec)) {
+        return true
+      }
+      if (norm.split('/').pop() === normSec.split('/').pop()) {
+        return true
+      }
+    }
+    return false
   }
 
   function updateLocationProgress(cfi: string) {
@@ -541,10 +704,12 @@
             box-sizing: border-box !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
+            overflow-anchor: none !important;
           }
           html, body {
             margin: 0 !important;
             padding: 0 !important;
+            overflow-anchor: none !important;
           }
           body {
             padding: 20px 32px 60px 32px !important;
@@ -796,7 +961,7 @@
               <li>
                 <button
                   class="toc-item"
-                  class:active="{activeHref.includes(item.href)}"
+                  class:active="{isItemActive(item.href)}"
                   on:click="{() => navigateTo(item.href)}"
                 >
                   {item.label?.trim() || 'Untitled Chapter'}
@@ -805,11 +970,22 @@
                   {#each item.subitems as sub}
                     <button
                       class="toc-item toc-subitem"
-                      class:active="{activeHref.includes(sub.href)}"
+                      class:active="{isItemActive(sub.href)}"
                       on:click="{() => navigateTo(sub.href)}"
                     >
                       {sub.label?.trim() || 'Untitled'}
                     </button>
+                    {#if sub.subitems && sub.subitems.length > 0}
+                      {#each sub.subitems as subsub}
+                        <button
+                          class="toc-item toc-subsubitem"
+                          class:active="{isItemActive(subsub.href)}"
+                          on:click="{() => navigateTo(subsub.href)}"
+                        >
+                          {subsub.label?.trim() || 'Untitled'}
+                        </button>
+                      {/each}
+                    {/if}
                   {/each}
                 {/if}
               </li>
