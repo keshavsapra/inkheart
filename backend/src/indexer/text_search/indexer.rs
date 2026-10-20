@@ -284,7 +284,7 @@ pub fn extract_epub_text(file_path: &str) -> Result<Vec<PageContent>, String> {
     let mut pages = Vec::with_capacity(num_chapters);
 
     for chapter_idx in 0..num_chapters {
-        doc.set_current_page(chapter_idx);
+        doc.set_current_chapter(chapter_idx);
         let raw_html = if let Some((content, _)) = doc.get_current_str() {
             content
         } else if let Some(spine_item) = doc.spine.get(chapter_idx) {

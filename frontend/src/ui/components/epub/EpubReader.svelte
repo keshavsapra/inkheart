@@ -403,13 +403,29 @@
     }
   }
 
+  let _mql: MediaQueryList | null = null
+  let _mediaListener: ((e: MediaQueryListEvent) => void) | null = null
+
+  onDestroy(() => {
+    if (_mql && _mediaListener) {
+      _mql.removeEventListener('change', _mediaListener)
+    }
+    window.removeEventListener('keydown', handleKeydown)
+    if (rendition) {
+      try { rendition.destroy() } catch (_) {}
+    }
+    if (book) {
+      try { book.destroy() } catch (_) {}
+    }
+  })
+
   onMount(async () => {
-    isMobile = window.matchMedia('(max-width: 45rem)').matches
-    const mediaListener = (e: MediaQueryListEvent) => {
+    _mql = window.matchMedia('(max-width: 45rem)')
+    isMobile = _mql.matches
+    _mediaListener = (e: MediaQueryListEvent) => {
       isMobile = e.matches
     }
-    const mql = window.matchMedia('(max-width: 45rem)')
-    mql.addEventListener('change', mediaListener)
+    _mql.addEventListener('change', _mediaListener)
 
     try {
       loading = true
@@ -523,21 +539,6 @@
     }
 
     window.addEventListener('keydown', handleKeydown)
-
-    return () => {
-      mql.removeEventListener('change', mediaListener)
-      window.removeEventListener('keydown', handleKeydown)
-      if (rendition) {
-        try {
-          rendition.destroy()
-        } catch (_) {}
-      }
-      if (book) {
-        try {
-          book.destroy()
-        } catch (_) {}
-      }
-    }
   })
 </script>
 

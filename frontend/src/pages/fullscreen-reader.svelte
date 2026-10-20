@@ -42,7 +42,7 @@
   $: navPreviewTitle = $location.state?.previewTitle || ''
   $: stateFilename = $location.state?.filename || ''
 
-  let isEpub = stateFilename ? stateFilename.toLowerCase().endsWith('.epub') : false
+  $: isEpub = stateFilename ? stateFilename.toLowerCase().endsWith('.epub') : false
   let itemTitle = ''
 
   // Save reading progress when page changes (for PDFs)

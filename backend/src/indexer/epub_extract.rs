@@ -62,7 +62,7 @@ pub fn extract_epub_cover(
     }
 
     let target_width = width.max(100) as u32;
-    let target_height = target_width * 2;
+    let target_height = target_width * 3 / 2; // standard 2:3 book cover aspect ratio
 
     if let Some(bytes) = cover_bytes {
         let dynamic_image = image::load_from_memory(&bytes)
@@ -81,7 +81,7 @@ pub fn extract_epub_cover(
         // Fallback: generate a clean placeholder card image (3:4 aspect ratio)
         let rgb_image = image::RgbImage::from_pixel(
             target_width,
-            (target_width * 4) / 3,
+            target_width * 3 / 2, // standard 2:3 book cover aspect ratio
             image::Rgb([40, 44, 52]),
         );
         rgb_image
