@@ -17,6 +17,7 @@ struct BuildConfig {
     lib_file_name: OsString,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 enum BuildError {
     IoError(io::Error),
@@ -135,8 +136,8 @@ fn download_pdfium(config: &BuildConfig, target: &str) -> Result<(), BuildError>
     fs::create_dir_all(&config.lib_dir)?;
 
     let lib_file = config.lib_dir.join(&config.lib_file_name);
-    fs::rename(&bin_file, &lib_file)?;
-    fs::rename(&version_file, config.lib_dir.join("VERSION"))?;
+    fs::copy(&bin_file, &lib_file)?;
+    fs::copy(&version_file, config.lib_dir.join("VERSION"))?;
 
     Ok(())
 }

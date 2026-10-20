@@ -9,7 +9,7 @@ WORKDIR /inkheart
 ####################################################################################################
 ## Planner - Creates the recipe for dependencies
 ####################################################################################################
-FROM chef AS planner
+FROM --platform=$BUILDPLATFORM chef AS planner
 
 COPY ./backend .
 
@@ -63,18 +63,17 @@ RUN cargo build --release
 ARG FIREBASE_CONFIG
 ARG VITE_ENV
 ARG BASE_PATH
-FROM node:20.11-slim AS node_builder
+# Build frontend natively on the build platform — static web assets (HTML/JS/CSS) are architecture-agnostic
+FROM --platform=$BUILDPLATFORM node:20.11-slim AS node_builder
 
 WORKDIR /inkheart
 
+# Ensure git and ca-certificates are installed for git-based npm dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
+
 # Run install before copying code in order to cache dependencies
 COPY ["frontend/package.json", "frontend/package-lock.json", "./"]
-# Configure npm timeouts for slow ARM64 QEMU emulation and add retry logic
-RUN npm config set fetch-timeout 600000 && \
-    npm config set fetch-retries 5 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    (npm install || npm install || npm install)
+RUN npm install
 
 COPY ["VERSION", "../"]
 
