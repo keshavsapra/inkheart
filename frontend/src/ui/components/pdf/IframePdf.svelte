@@ -34,7 +34,7 @@
   export let file: string
   export let showBackButton = true
 
-  export let previewTitle = 'Inkheart'
+  export let previewTitle = 'NextChapter'
 
   const page_internal = page
 
@@ -51,7 +51,8 @@
   const getPreviewTitle = () => {
     const metaTags = getMeta()
 
-    return metaTags['inkheart:preview-title'] === '$OGTITLE' ? 'Inkheart' : metaTags['inkheart:preview-title']
+    const title = metaTags['nextchapter:preview-title'] || metaTags['inkheart:preview-title']
+    return title === '$OGTITLE' || !title ? 'NextChapter' : title
   }
 
   interface OutlineItem {

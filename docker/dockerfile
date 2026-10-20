@@ -3,7 +3,7 @@
 ####################################################################################################
 FROM lukemathwalker/cargo-chef:latest-rust-1.94.1 AS chef
 
-WORKDIR /inkheart
+WORKDIR /nextchapter
 
 
 ####################################################################################################
@@ -21,7 +21,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 ####################################################################################################
 FROM chef AS test
 
-COPY --from=planner /inkheart/recipe.json recipe.json
+COPY --from=planner /nextchapter/recipe.json recipe.json
 
 RUN cargo chef cook --recipe-path recipe.json
 
@@ -45,7 +45,7 @@ ARG BUILDPLATFORM
 
 RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM"
 
-COPY --from=planner /inkheart/recipe.json recipe.json
+COPY --from=planner /nextchapter/recipe.json recipe.json
 
 # Let cargo auto-detect the target instead of hardcoding x86_64
 RUN cargo chef cook --release --recipe-path recipe.json
@@ -66,7 +66,7 @@ ARG BASE_PATH
 # Build frontend natively on the build platform — static web assets (HTML/JS/CSS) are architecture-agnostic
 FROM --platform=$BUILDPLATFORM node:20.11-slim AS node_builder
 
-WORKDIR /inkheart
+WORKDIR /nextchapter
 
 # Ensure git and ca-certificates are installed for git-based npm dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -98,18 +98,18 @@ RUN ./frontend.sh
 FROM scratch AS export
 
 # Copy our build artifacts from release directory (not target-specific subdir)
-COPY --from=rust_builder /inkheart/target/release/inkheart ./
-COPY --from=rust_builder /inkheart/lib/libpdfium.so .
-COPY --from=rust_builder /inkheart/lib/VERSION .
-COPY --from=node_builder /inkheart/dist ./public
+COPY --from=rust_builder /nextchapter/target/release/nextchapter ./
+COPY --from=rust_builder /nextchapter/lib/libpdfium.so .
+COPY --from=rust_builder /nextchapter/lib/VERSION .
+COPY --from=node_builder /nextchapter/dist ./public
 
 ####################################################################################################
 ## User files (generate passwd/group in a stage that has a shell)
 ####################################################################################################
 FROM rust_builder AS userfiles
 
-RUN echo "inkheart:x:1000:1000::/nonexistent:/sbin/nologin" > /tmp/passwd && \
-    echo "inkheart:x:1000:" > /tmp/group
+RUN echo "nextchapter:x:1000:1000::/nonexistent:/sbin/nologin" > /tmp/passwd && \
+    echo "nextchapter:x:1000:" > /tmp/group
 
 ####################################################################################################
 ## Final image
@@ -119,13 +119,13 @@ FROM gcr.io/distroless/cc-debian13 AS final
 COPY --from=userfiles /tmp/passwd /etc/passwd
 COPY --from=userfiles /tmp/group /etc/group
 
-WORKDIR /inkheart
+WORKDIR /nextchapter
 
 # Copy our build artifacts
 COPY --from=export ./ ./
 
 # Use an unprivileged user.
-USER inkheart:inkheart
+USER nextchapter:nextchapter
 
-CMD ["/inkheart/inkheart"]
+CMD ["/nextchapter/nextchapter"]
 EXPOSE 8080/tcp

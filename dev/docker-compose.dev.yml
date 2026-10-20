@@ -1,12 +1,12 @@
 version: "3.7"
 
 networks:
-  inknet:
+  nextnet:
 
 services:
   frontend:
     container_name: frontend
-    working_dir: /inkheart
+    working_dir: /nextchapter
     build:
       context: ../
       target: node_builder
@@ -21,12 +21,12 @@ services:
       watch:
         - action: sync
           path: ../frontend
-          target: /inkheart
+          target: /nextchapter
     command: npm run dev
     networks:
-      - inknet
+      - nextnet
 
-  inkheart:
+  nextchapter:
     build:
       context: ../
       dockerfile: ./docker/dockerfile
@@ -34,12 +34,12 @@ services:
       watch:
         - action: rebuild
           path: ../backend
-    container_name: inkheart
+    container_name: nextchapter
     # Run as root in dev to work around Docker Desktop bind mount permission
-    # issues on Windows. Production runs as the unprivileged inkheart user.
+    # issues on Windows. Production runs as the unprivileged nextchapter user.
     user: "0:0"
     networks:
-      - inknet
+      - nextnet
     volumes:
       - ${HOST_MEDIA_DIR}:/media
       - ${HOST_COVERS_DIR}:/covers
@@ -59,6 +59,6 @@ services:
     ports:
       - 80:80/tcp
     networks:
-      - inknet
+      - nextnet
     depends_on:
-      - inkheart
+      - nextchapter

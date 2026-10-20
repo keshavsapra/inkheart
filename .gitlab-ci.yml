@@ -81,7 +81,7 @@ preemptive-merge-integration-tests:
     - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     - git checkout -B $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     - git merge $CI_COMMIT_SHA
-    - docker load -i image/inkheart.tar
+    - docker load -i image/nextchapter.tar
     - ./ci-cd/integration-tests.cicd.sh
 
 unit-tests:
@@ -135,7 +135,7 @@ build-arm64:
     - when: never
   artifacts:
     paths:
-      - image/inkheart-arm64.tar
+      - image/nextchapter-arm64.tar
     expire_in: 1 day
     when: on_success
 
@@ -144,7 +144,7 @@ integration-tests:
   needs:
     - build
   script:
-    - docker load -i image/inkheart.tar
+    - docker load -i image/nextchapter.tar
     - ./ci-cd/integration-tests.cicd.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"

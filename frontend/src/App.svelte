@@ -309,7 +309,7 @@
         {/if}
 
         {#if !$readerContext}
-          <h2>Inkheart</h2>
+          <h2>NextChapter</h2>
         {/if}
       </div>
     {/if}

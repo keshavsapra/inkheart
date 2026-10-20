@@ -2,7 +2,8 @@ use config_file::{Config as ConfigFile, ConfigError, File, Source};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, env, fs, path::Path};
 
-const CONFIG_FILE_PATH: &str = "./inkheart.toml";
+const CONFIG_FILE_PATH: &str = "./nextchapter.toml";
+const LEGACY_CONFIG_FILE_PATH: &str = "./inkheart.toml";
 const DEFAULT_FIREBASE_CONFIG_PATH: &str = "./firebase.json";
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -79,7 +80,15 @@ impl Config {
 
         let config_path = env::var_os("CONFIG_PATH")
             .map(|s| s.to_string_lossy().into_owned())
-            .unwrap_or(CONFIG_FILE_PATH.to_string());
+            .unwrap_or_else(|| {
+                if Path::new(CONFIG_FILE_PATH).exists() {
+                    CONFIG_FILE_PATH.to_string()
+                } else if Path::new(LEGACY_CONFIG_FILE_PATH).exists() {
+                    LEGACY_CONFIG_FILE_PATH.to_string()
+                } else {
+                    CONFIG_FILE_PATH.to_string()
+                }
+            });
         let media_root = env::var_os("MEDIA_DIR")
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or("./media".to_string());

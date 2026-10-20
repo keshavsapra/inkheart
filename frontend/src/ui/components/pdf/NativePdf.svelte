@@ -727,7 +727,8 @@
     docProps = await loadDocumentProps(pdfDocument)
 
     if (!docTitle) {
-      const previewTitle = getMeta()['inkheart:preview-title']
+      const metas = getMeta()
+      const previewTitle = metas['nextchapter:preview-title'] || metas['inkheart:preview-title']
 
       if (previewTitle && previewTitle !== '$OGTITLE') {
         docTitle = previewTitle

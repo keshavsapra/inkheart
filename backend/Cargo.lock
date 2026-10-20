@@ -1570,29 +1570,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inkheart"
-version = "0.0.0"
-dependencies = [
- "actix-files",
- "actix-web",
- "clokwerk",
- "config",
- "epub",
- "firebase-admin-auth-rs",
- "flate2",
- "futures-util",
- "image",
- "md5",
- "pdfium-render",
- "reqwest",
- "serde",
- "serde_json",
- "tantivy",
- "tar",
- "tempfile",
-]
-
-[[package]]
 name = "interpolate_name"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1950,6 +1927,29 @@ name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
+
+[[package]]
+name = "nextchapter"
+version = "0.0.0"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "clokwerk",
+ "config",
+ "epub",
+ "firebase-admin-auth-rs",
+ "flate2",
+ "futures-util",
+ "image",
+ "md5",
+ "pdfium-render",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tantivy",
+ "tar",
+ "tempfile",
+]
 
 [[package]]
 name = "nom"

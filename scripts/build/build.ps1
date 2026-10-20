@@ -20,13 +20,13 @@ for ($i = 0; $i -lt $properties.Length; $i += 2) {
 $version = $hashTable["version"]
 
 if ($buildType -eq "docker") {
-    docker build $pwd -f docker/dockerfile -t "inkheart:${version}" -m 2g
+    docker build $pwd -f docker/dockerfile -t "nextchapter:${version}" -m 2g
 } elseif ($buildType -eq "export") {
     if (-not (Test-Path -Path "./build" -PathType Container)) {
         New-Item -ItemType Directory -Path "./build"
     }
     docker build $pwd -f docker/dockerfile --target export -o build -m 2g
 } elseif ($buildType -eq "test") {
-    docker build $pwd -f docker/dockerfile -t inkheart-test --target test -m 2g
-    docker run inkheart-test
+    docker build $pwd -f docker/dockerfile -t nextchapter-test --target test -m 2g
+    docker run nextchapter-test
 } 

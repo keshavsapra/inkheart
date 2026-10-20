@@ -171,7 +171,7 @@
         <div class="setting-row">
           <div class="meta">
             <div class="title">Theme</div>
-            <div class="description">Select the visual theme for Inkheart.</div>
+            <div class="description">Select the visual theme for NextChapter.</div>
           </div>
           <div class="control">
             <select bind:value="{$selectedTheme}" aria-label="Theme">

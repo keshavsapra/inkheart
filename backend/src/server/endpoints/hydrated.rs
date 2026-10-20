@@ -75,7 +75,7 @@ pub async fn multihandler(
 
             img = match filename {
                 Some(f) => format!("/thumbnail/{}", f),
-                None => "/static/inkheart.png".to_string(),
+                None => "/static/nextchapter.png".to_string(),
             };
         }
     }

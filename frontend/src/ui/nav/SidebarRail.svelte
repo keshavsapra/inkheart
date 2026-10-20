@@ -302,7 +302,7 @@
 </script>
 
 <div class="rail">
-  <img class="rail-logo" src="static/logo.svg" alt="Inkheart" />
+  <img class="rail-logo" src="static/logo.svg" alt="NextChapter" />
 
   <button class="rail-icon" class:active="{currentPath === '/'}" on:click="{goHome}" aria-label="Files" title="Files">
     <Icon icon="mdi:folder-outline" />

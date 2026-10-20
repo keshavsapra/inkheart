@@ -71,8 +71,8 @@ echo ""
 
 mkdir -p image
 
-docker save $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA > image/inkheart.tar
-echo "OK: Saved AMD64 image to image/inkheart.tar"
+docker save $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA > image/nextchapter.tar
+echo "OK: Saved AMD64 image to image/nextchapter.tar"
 
 echo ""
 echo "=== Exporting Build Artifacts ==="
@@ -95,6 +95,6 @@ echo "========================================="
 echo "AMD64 Build Complete"
 echo "========================================="
 echo "OK: AMD64 image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-echo "OK: Image tar: image/inkheart.tar"
+echo "OK: Image tar: image/nextchapter.tar"
 echo "OK: Build artifacts: build/"
 echo "========================================="

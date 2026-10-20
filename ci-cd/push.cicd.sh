@@ -16,7 +16,7 @@ echo ""
 echo "=== Loading AMD64 Image ==="
 
 # Load AMD64 image (NO suffix in tar)
-docker load -i image/inkheart.tar
+docker load -i image/nextchapter.tar
 # Tag it WITH suffix for publishing
 docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64
 echo "OK: Loaded and tagged AMD64 image"
@@ -25,9 +25,9 @@ echo ""
 echo "=== Checking for ARM64 Image ==="
 
 HAS_ARM64=false
-if [ -f image/inkheart-arm64.tar ] && [ -s image/inkheart-arm64.tar ]; then
+if [ -f image/nextchapter-arm64.tar ] && [ -s image/nextchapter-arm64.tar ]; then
     # ARM64 already has suffix in tar
-    docker load -i image/inkheart-arm64.tar
+    docker load -i image/nextchapter-arm64.tar
     HAS_ARM64=true
     echo "OK: ARM64 image found and loaded (multi-arch build)"
 else
@@ -75,26 +75,26 @@ echo "=== Pushing to Docker Hub ==="
 docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD $DOCKERHUB_REGISTRY
 
 # Tag and push AMD64
-docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64 $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}
-docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64 $DOCKERHUB_USER/inkheart:latest
-docker push $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}
-docker push $DOCKERHUB_USER/inkheart:latest
+docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64 $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}
+docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64 $DOCKERHUB_USER/nextchapter:latest
+docker push $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}
+docker push $DOCKERHUB_USER/nextchapter:latest
 echo "OK: Pushed AMD64 to Docker Hub"
 
 if [ "$HAS_ARM64" = "true" ]; then
     # Tag and push ARM64
-    docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64 $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}-arm64
-    docker push $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}-arm64
+    docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64 $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}-arm64
+    docker push $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}-arm64
     echo "OK: Pushed ARM64 to Docker Hub"
     
     echo ""
     echo "=== Creating Multi-Arch Manifest (Docker Hub) ==="
     
-    docker buildx imagetools create -t $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION} \
+    docker buildx imagetools create -t $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION} \
       $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64 \
       $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64
     
-    docker buildx imagetools create -t $DOCKERHUB_USER/inkheart:latest \
+    docker buildx imagetools create -t $DOCKERHUB_USER/nextchapter:latest \
       $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-amd64 \
       $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64
     
@@ -102,7 +102,7 @@ if [ "$HAS_ARM64" = "true" ]; then
     
     echo ""
     echo "=== Verifying Multi-Arch Manifest ==="
-    docker buildx imagetools inspect $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}
+    docker buildx imagetools inspect $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}
 else
     echo "OK: Published AMD64-only images to Docker Hub"
 fi
@@ -114,10 +114,10 @@ echo "========================================="
 if [ "$HAS_ARM64" = "true" ]; then
     echo "OK: Multi-arch images published (AMD64 + ARM64)"
     echo "  GitLab: $CI_REGISTRY_IMAGE:${PACKAGE_VERSION}"
-    echo "  Docker Hub: $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}"
+    echo "  Docker Hub: $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}"
 else
     echo "OK: AMD64-only images published"
     echo "  GitLab: $CI_REGISTRY_IMAGE:${PACKAGE_VERSION}"
-    echo "  Docker Hub: $DOCKERHUB_USER/inkheart:${PACKAGE_VERSION}"
+    echo "  Docker Hub: $DOCKERHUB_USER/nextchapter:${PACKAGE_VERSION}"
 fi
 echo "========================================="

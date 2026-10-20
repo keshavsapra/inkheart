@@ -69,13 +69,13 @@ echo ""
 
 mkdir -p image
 
-docker save $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64 > image/inkheart-arm64.tar
-echo "OK: Saved ARM64 image to image/inkheart-arm64.tar"
+docker save $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64 > image/nextchapter-arm64.tar
+echo "OK: Saved ARM64 image to image/nextchapter-arm64.tar"
 
 echo ""
 echo "========================================="
 echo "ARM64 Build Complete"
 echo "========================================="
 echo "OK: ARM64 image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-arm64"
-echo "OK: Image tar: image/inkheart-arm64.tar"
+echo "OK: Image tar: image/nextchapter-arm64.tar"
 echo "========================================="

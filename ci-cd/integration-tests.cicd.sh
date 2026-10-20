@@ -7,7 +7,7 @@ if [ -z "$CI_REGISTRY_IMAGE" ] || [ -z "$CI_COMMIT_SHA" ]; then
 fi
 
 # put correct image name in compose config
-sed -i "s@nobbe/inkheart:latest@$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA@" docker-compose.yml
+sed -i "s@.*image:.*@    image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA@" docker-compose.yml
 
 # create paths
 mkdir -pv /path/to/{media,covers,config,thumbnails}
@@ -19,7 +19,7 @@ docker compose up -d
 sleep 10
 
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://docker:8080) && [[ $HTTP_CODE -eq 200 ]] || exit 1
-curl -sS http://docker:8080 | grep --silent '<title>Inkheart</title>' || exit 1
+curl -sS http://docker:8080 | grep --silent '<title>NextChapter</title>' || exit 1
 
 # add more integration tests
 # ...

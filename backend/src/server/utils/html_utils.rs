@@ -16,7 +16,10 @@ pub fn hydrate_index_html(
 ) -> String {
     html.replace("$OGTITLE", title)
         .replace("$OGIMAGE", img)
+        .replace("$NC:USEAUTH", use_auth)
         .replace("$INK:USEAUTH", use_auth)
+        .replace("$NC:FIREBASE_CONFIG", firebase_config)
         .replace("$INK:FIREBASE_CONFIG", firebase_config)
+        .replace("$NC:BASEPATH", basepath)
         .replace("$INK:BASEPATH", basepath)
 }

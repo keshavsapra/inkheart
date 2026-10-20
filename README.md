@@ -1,33 +1,33 @@
 <div align="center">
-  <img src="frontend/public/static/logo.svg" alt="Inkheart logo" width="160" height="160">
-  <h1>Inkheart</h1>
+  <img src="frontend/public/static/logo.svg" alt="NextChapter logo" width="160" height="160">
+  <h1>NextChapter</h1>
   <p><strong>Lightweight, self-hosted PDF & EPUB library indexer and web reader.</strong></p>
 
   <p>
-    <a href="https://github.com/keshavsapra/inkheart"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+    <a href="https://github.com/keshavsapra/nextchapter"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
     <img src="https://img.shields.io/badge/Platforms-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20ARM64-blue?logo=docker" alt="Platform">
     <img src="https://img.shields.io/badge/Formats-PDF%20%7C%20EPUB-orange" alt="Supported Formats">
-    <a href="https://github.com/keshavsapra/inkheart/actions"><img src="https://github.com/keshavsapra/inkheart/actions/workflows/docker.yml/badge.svg" alt="Build Status"></a>
+    <a href="https://github.com/keshavsapra/nextchapter/actions"><img src="https://github.com/keshavsapra/nextchapter/actions/workflows/docker.yml/badge.svg" alt="Build Status"></a>
   </p>
 </div>
 
 <br>
 
 <p align="center">
-  <img src="screenshots/example.png" alt="Inkheart Screenshot" width="85%">
+  <img src="screenshots/example.png" alt="NextChapter Screenshot" width="85%">
 </p>
 
 ---
 
-## 📖 About Inkheart
+## 📖 About NextChapter
 
-> **Note**: This repository is an enhanced fork of the original **Inkheart** project created by **[Nystik](https://github.com/Nystik-gh)**. It extends the original PDF library by introducing native **EPUB support**, multi-architecture GitHub Actions CI/CD (`linux/amd64` & `linux/arm64`), and web reader improvements.
+> **Note**: This repository originated as an enhanced fork of the open-source **Inkheart** project created by **[Nystik](https://github.com/Nystik-gh)**. It has evolved into **NextChapter**, extending the original foundation with native **EPUB reading & navigation**, multi-architecture native GitHub Actions CI/CD (`linux/amd64` & `linux/arm64`), modernized theme options, and reader performance improvements.
 
-**Inkheart** is a minimalist, self-hosted digital library designed around one core philosophy: **your filesystem is the source of truth**. 
+**NextChapter** is a minimalist, self-hosted digital library designed around one core philosophy: **your filesystem is the source of truth**. 
 
-Instead of requiring an external database, complex schemas, or manual book metadata curation, Inkheart scans your media directory as an on-disk folder tree. It extracts high-resolution covers, compiles an instant full-text search index, and provides sleek, integrated web readers for both **PDF** and **EPUB** documents.
+Instead of requiring an external database, complex schemas, or manual book metadata curation, NextChapter scans your media directory as an on-disk folder tree. It extracts high-resolution covers, compiles an instant full-text search index, and provides sleek, integrated web readers for both **PDF** and **EPUB** documents.
 
-Inkheart is intentionally lightweight and focused. It is not an unwieldy comic/manga scraper or a full-blown OPDS manager — it does one thing exceptionally well: gives you a fast, beautiful way to read and search your documents on desktop, tablet, and mobile.
+NextChapter is intentionally lightweight and focused. It is not an unwieldy comic/manga scraper or a full-blown OPDS manager — it does one thing exceptionally well: gives you a fast, beautiful way to read and search your documents on desktop, tablet, and mobile.
 
 ---
 
@@ -54,9 +54,9 @@ Create a `docker-compose.yml` file:
 
 ```yaml
 services:
-  inkheart:
-    image: ghcr.io/keshavsapra/inkheart:latest
-    container_name: inkheart
+  nextchapter:
+    image: ghcr.io/keshavsapra/nextchapter:latest
+    container_name: nextchapter
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -72,7 +72,7 @@ services:
       - TEXT_INDEX_ENABLED=true            # Enable full-text search indexing
 ```
 
-Ensure your storage directories exist and have proper write permissions (Inkheart runs as non-root UID 1000 inside the container):
+Ensure your storage directories exist and have proper write permissions (NextChapter runs as non-root UID 1000 inside the container):
 ```bash
 mkdir -p /path/to/covers /path/to/thumbnails /path/to/config /path/to/your/books
 sudo chown -R 1000:1000 /path/to/covers /path/to/thumbnails /path/to/config
@@ -92,7 +92,7 @@ Open **`http://localhost:8080`** in your browser.
 
 ## 💻 Cross-Platform Deployment
 
-Inkheart images are published as multi-architecture containers (`linux/amd64` and `linux/arm64`). Docker will automatically detect and pull the optimal binary for your host without any extra configuration:
+NextChapter images are published as multi-architecture containers (`linux/amd64` and `linux/arm64`). Docker will automatically detect and pull the optimal binary for your host without any extra configuration:
 
 - **Linux / VPS**: Ubuntu, Debian, Fedora, Arch, Alpine, etc.
 - **Home Servers & NAS**: Synology, Unraid, TrueNAS SCALE, QNAP, or Portainer.
@@ -102,21 +102,21 @@ Inkheart images are published as multi-architecture containers (`linux/amd64` an
 ### Docker CLI Example
 ```bash
 docker run -d \
-  --name inkheart \
+  --name nextchapter \
   --restart unless-stopped \
   -p 8080:8080 \
   -v /path/to/your/books:/media \
   -v /path/to/covers:/covers \
   -v /path/to/thumbnails:/thumbnails \
   -v /path/to/config:/config \
-  ghcr.io/keshavsapra/inkheart:latest
+  ghcr.io/keshavsapra/nextchapter:latest
 ```
 
 ---
 
 ## ⚙️ Configuration Reference
 
-Inkheart supports configuration through environment variables or an `inkheart.toml` file.
+NextChapter supports configuration through environment variables or a `nextchapter.toml` (or legacy `inkheart.toml`) file.
 
 | Environment Variable | Description | Default |
 |---|---|---|
@@ -124,7 +124,7 @@ Inkheart supports configuration through environment variables or an `inkheart.to
 | `IMAGE_DIR` | Directory where book covers are cached | `/covers` |
 | `THUMBNAIL_DIR` | Directory for on-demand page preview thumbnails | `/thumbnails` |
 | `CONFIG_DIR` | Directory storing user data, pins, collections, and search index | Parent dir of `CONFIG_PATH` |
-| `CONFIG_PATH` | Optional path to an `inkheart.toml` file | `./inkheart.toml` |
+| `CONFIG_PATH` | Optional path to a `nextchapter.toml` file | `./nextchapter.toml` |
 | `BIND_ADDR` | Network address the server binds to | `127.0.0.1` (`0.0.0.0` in Docker) |
 | `BIND_PORT` | HTTP port | `8080` |
 | `SCAN_INTERVAL` | Filesystem scan interval for changes (in seconds) | `600` (10 min) |
@@ -139,7 +139,7 @@ Inkheart supports configuration through environment variables or an `inkheart.to
 
 ## 🌐 Reverse Proxy & Subdirectory Setup
 
-To serve Inkheart behind a reverse proxy (such as Nginx, Caddy, Traefik, or Cloudflare Tunnels):
+To serve NextChapter behind a reverse proxy (such as Nginx, Caddy, Traefik, or Cloudflare Tunnels):
 
 ### Nginx Root Domain
 ```nginx
@@ -172,7 +172,7 @@ If you want to build locally or customize the code:
 
 ### Local Docker Build
 ```bash
-docker build -t inkheart:local -f docker/dockerfile .
+docker build -t nextchapter:local -f docker/dockerfile .
 ```
 
 ### Automated CI/CD
@@ -183,7 +183,7 @@ This repository includes an automated GitHub Actions workflow ([`.github/workflo
 ## 🏗️ Architecture
 
 ```
-inkheart/
+nextchapter/
 ├── backend/            # Rust Actix-Web server
 │   ├── indexer/        # Filesystem scanner, PDF/EPUB cover & chapter extraction
 │   │   └── text_search/# Tantivy search engine, mtime change tracking, HTML parser

@@ -20,7 +20,7 @@ include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Inkheart v{} ({})", VERSION, CODENAME);
+    println!("NextChapter v{} ({})", VERSION, CODENAME);
 
     let config = Config::load_config();
     let pdfium = init_pdfium();

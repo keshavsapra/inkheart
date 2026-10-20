@@ -10,9 +10,15 @@ initTheme()
 
 const metaTags = getMeta()
 
-const useAuth = metaTags['inkheart:use-auth'] === '$INK:USEAUTH' ? false : metaTags['inkheart:use-auth'] === 'true'
+const useAuth =
+  metaTags['nextchapter:use-auth'] === '$NC:USEAUTH' || metaTags['inkheart:use-auth'] === '$INK:USEAUTH'
+    ? false
+    : metaTags['nextchapter:use-auth'] === 'true' || metaTags['inkheart:use-auth'] === 'true'
 
-const basepath = metaTags['inkheart:basepath'] === '$INK:BASEPATH' ? '/' : metaTags['inkheart:basepath'] || '/'
+const basepath =
+  metaTags['nextchapter:basepath'] === '$NC:BASEPATH' || metaTags['inkheart:basepath'] === '$INK:BASEPATH'
+    ? '/'
+    : metaTags['nextchapter:basepath'] || metaTags['inkheart:basepath'] || '/'
 
 basepathStore.set(basepath)
 

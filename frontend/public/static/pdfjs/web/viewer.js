@@ -723,7 +723,7 @@
             ...apiParams,
             ...args,
             httpHeaders:
-              localStorage.getItem('using_auth') && JSON.parse(localStorage.getItem('using_auth')) //patch in inkheart firebase
+              localStorage.getItem('using_auth') && JSON.parse(localStorage.getItem('using_auth')) //patch in nextchapter firebase
                 ? { Authorization: `Bearer ${localStorage.getItem('google_id')}` }
                 : {},
             withCredentials: true,

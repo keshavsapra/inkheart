@@ -10,7 +10,9 @@ export const initFirebase = memoize(() => {
   // Try to parse the Firebase config
   let firebaseConfig = null
   try {
-    firebaseConfig = JSON.parse(metaTags['inkheart:firebase-config'] || 'null')
+    firebaseConfig = JSON.parse(
+      metaTags['nextchapter:firebase-config'] || metaTags['inkheart:firebase-config'] || 'null'
+    )
   } catch (e) {
     console.error('Error parsing Firebase config:', e)
   }

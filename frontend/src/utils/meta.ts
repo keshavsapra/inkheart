@@ -3,8 +3,17 @@ const getMeta = () => {
 
   const map: { [k: string]: string } = {}
   for (const meta of metas) {
-    if (meta.getAttribute('name') && meta.getAttribute('name').startsWith('inkheart:')) {
-      map[meta.getAttribute('name')] = meta.getAttribute('content')
+    const name = meta.getAttribute('name')
+    if (name) {
+      if (name.startsWith('nextchapter:') || name.startsWith('inkheart:')) {
+        const val = meta.getAttribute('content') || ''
+        map[name] = val
+        if (name.startsWith('inkheart:')) {
+          map[name.replace('inkheart:', 'nextchapter:')] = val
+        } else if (name.startsWith('nextchapter:')) {
+          map[name.replace('nextchapter:', 'inkheart:')] = val
+        }
+      }
     }
   }
 

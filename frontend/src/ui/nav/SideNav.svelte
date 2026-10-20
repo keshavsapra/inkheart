@@ -162,7 +162,7 @@
 <div class="container">
   <div class="nav" class:open="{open}" class:collapsed="{collapseSideBar}">
     <div class="header">
-      <h2>Inkheart</h2>
+      <h2>NextChapter</h2>
       <button class="collapse-btn" on:click="{toggleSidebar}" aria-label="Collapse sidebar">
         <Icon icon="{isOpen ? 'mdi:chevron-left' : 'mdi:chevron-right'}" />
       </button>

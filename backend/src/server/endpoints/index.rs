@@ -11,8 +11,8 @@ pub async fn index(data: web::Data<AppState>) -> io::Result<impl Responder> {
     let html = fs::read_to_string("./public/index.html")?;
     let config = data.get_config()?;
 
-    let title = "Inkheart".to_string();
-    let img = "/static/inkheart.png".to_string();
+    let title = "NextChapter".to_string();
+    let img = "/static/nextchapter.png".to_string();
 
     let use_auth = match config.firebase_project_id.is_some() {
         true => "true",
