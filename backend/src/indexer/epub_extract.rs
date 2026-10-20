@@ -1,7 +1,6 @@
 use std::{
-    collections::HashMap,
     fs,
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use epub::doc::EpubDoc;

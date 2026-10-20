@@ -50,8 +50,6 @@ fn get_build_target() -> Option<&'static str> {
         "arm"
     } else if cfg!(target_arch = "aarch64") {
         "aarch64"
-    } else if cfg!(target_arch = "arm64") {
-        "arm64"
     } else if cfg!(target_arch = "x86_64") {
         "x86_64"
     } else if cfg!(target_arch = "x86") {
@@ -65,10 +63,10 @@ fn get_build_target() -> Option<&'static str> {
         ("linux", "aarch64") => Some("linux-arm64"),
         ("linux", "x86_64") => Some("linux-x64"),
         ("linux", "x86") => Some("linux-x86"),
-        ("macos", "arm64") => Some("mac-arm64"),
+        ("macos", "aarch64") => Some("mac-arm64"),
         ("macos", "x86_64") => Some("mac-x64"),
         ("macos", _) => Some("mac-univ"),
-        ("windows", "arm64") => Some("win-arm64"),
+        ("windows", "aarch64") => Some("win-arm64"),
         ("windows", "x86_64") => Some("win-x64"),
         ("windows", "x86") => Some("win-x86"),
         _ => None,
